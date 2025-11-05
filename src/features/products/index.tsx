@@ -21,17 +21,17 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import Highlight from "@/components/genesys-ui/hightlight";
 import { cn } from "@/lib/utils";
 import { Loader2, Search, ExternalLink } from "lucide-react";
 import { useProductsList } from "./queries";
-import type { ProductOut } from "@/api/products";
+import OffersInline from "./components/offers-inline";
+import { fmtPrice } from "@/helpers/prices";
+import type { ProductExt } from "./types";
+import StatusDot from "./components/status-dot";
+import TableSkeleton from "./components/table-skeleton";
+import TableEmpty from "./components/table-empty";
 
 /* ---------------- helpers ---------------- */
 function useDebounced<T>(value: T, delay = 350) {
@@ -41,115 +41,6 @@ function useDebounced<T>(value: T, delay = 350) {
     return () => clearTimeout(t);
   }, [value, delay]);
   return v;
-}
-function fmtPrice(n?: number | null) {
-  if (typeof n !== "number" || !Number.isFinite(n)) return "—";
-  try {
-    return new Intl.NumberFormat("pt-PT", {
-      style: "currency",
-      currency: "EUR",
-    }).format(n);
-  } catch {
-    return n.toFixed(2);
-  }
-}
-
-/* ------- backend extended types we use in UI ------- */
-type OfferOut = {
-  id_supplier: number;
-  supplier_name?: string | null;
-  supplier_image?: string | null;
-  price?: string | null;
-  stock?: number | null;
-  updated_at?: string | null;
-};
-type ProductExt = ProductOut & {
-  brand_name?: string | null;
-  category_name?: string | null;
-  offers?: OfferOut[];
-  best_offer?: OfferOut | null;
-  id_ecommerce?: number | null;
-};
-
-/* ---------------- subcomponents ---------------- */
-function StatusDot({ ok }: { ok: boolean }) {
-  return (
-    <span
-      className={cn(
-        "inline-block h-2 w-2 rounded-full",
-        ok ? "bg-emerald-500" : "bg-amber-500"
-      )}
-    />
-  );
-}
-
-function OffersInline({
-  offers,
-  best,
-}: {
-  offers?: OfferOut[];
-  best?: OfferOut | null;
-}) {
-  if (!offers || offers.length === 0)
-    return <span className="text-xs text-muted-foreground">—</span>;
-  const bestId = best?.id_supplier ?? null;
-
-  return (
-    <div className="inline-flex items-center gap-1.5 rounded-md bg-muted/40 px-1.5 py-1">
-      {offers.map((o, i) => {
-        const isBest = o.id_supplier === bestId;
-        const priceNum = o.price != null ? Number.parseFloat(o.price) : NaN;
-        const priceText = Number.isFinite(priceNum)
-          ? fmtPrice(priceNum)
-          : o.price ?? "—";
-        const stockText = typeof o.stock === "number" ? `${o.stock} un.` : "—";
-
-        const inner = o.supplier_image ? (
-          <img
-            src={o.supplier_image}
-            alt={o.supplier_name ?? "fornecedor"}
-            className="h-6 w-6 object-cover rounded"
-            loading="lazy"
-          />
-        ) : (
-          <div className="h-6 w-6 grid place-items-center rounded text-[9px] bg-muted">
-            {(o.supplier_name || "??").slice(0, 2).toUpperCase()}
-          </div>
-        );
-
-        return (
-          <Tooltip key={`${o.id_supplier}-${i}`}>
-            <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "rounded overflow-hidden border transition",
-                  isBest
-                    ? "ring-2 ring-emerald-500 border-emerald-500 shadow-[0_0_0_2px_rgba(16,185,129,0.25)]"
-                    : "border-border/40 hover:border-border"
-                )}
-                role="img"
-                aria-label={`${
-                  o.supplier_name ?? "Fornecedor"
-                } • ${stockText} • ${priceText}`}
-                title={`${
-                  o.supplier_name ?? "Fornecedor"
-                } • ${stockText} • ${priceText}`}
-              >
-                {inner}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="text-xs">
-              <div className="font-medium">
-                {o.supplier_name ?? "Fornecedor"}
-              </div>
-              <div>Stock: {stockText}</div>
-              <div>Preço: {priceText}</div>
-            </TooltipContent>
-          </Tooltip>
-        );
-      })}
-    </div>
-  );
 }
 
 /* ---------------- page ---------------- */
@@ -253,7 +144,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="mt-3 text-xs text-muted-foreground">
+          <div className="mt-0 text-xs text-muted-foreground">
             {data
               ? `${data.total} resultados` +
                 (typeof elapsedMs === "number"
@@ -282,44 +173,12 @@ export default function ProductsPage() {
 
               <TableBody>
                 {/* Skeleton */}
-                {isLoading &&
-                  Array.from({ length: 10 }).map((_, r) => (
-                    <TableRow key={`sk-${r}`} className="hover:bg-transparent">
-                      {Array.from({ length: 7 }).map((__, c) => (
-                        <TableCell key={`skc-${r}-${c}`} className="py-4">
-                          <div
-                            className={cn(
-                              "flex items-center gap-2",
-                              c === 4 || c === 5 ? "justify-end" : ""
-                            )}
-                          >
-                            <div className="h-4 w-full max-w-[220px] animate-pulse rounded bg-muted" />
-                            {c === 0 && (
-                              <div className="h-6 w-6 rounded-full bg-muted animate-pulse" />
-                            )}
-                          </div>
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
+                {isLoading && (
+                  <TableSkeleton rows={10} cols={7} rightAlignCols={[4, 5]} />
+                )}
 
                 {/* Empty */}
-                {!isLoading && items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-16">
-                      <div className="flex flex-col items-center justify-center gap-2 text-center">
-                        <div className="h-12 w-12 rounded-full bg-muted" />
-                        <p className="text-sm text-muted-foreground">
-                          Sem resultados. Ajuste os filtros ou{" "}
-                          <Link className="underline" to="/suppliers/create">
-                            crie um fornecedor
-                          </Link>{" "}
-                          para começar a importar.
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
+                {!isLoading && items.length === 0 && <TableEmpty />}
 
                 {/* Rows */}
                 {!isLoading &&
@@ -337,7 +196,7 @@ export default function ProductsPage() {
                         {/* Produto */}
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border">
+                            <Avatar className="h-12 w-12 border rounded-md">
                               {p.image_url ? (
                                 <AvatarImage
                                   src={p.image_url}
@@ -364,11 +223,6 @@ export default function ProductsPage() {
                                     "h-5 px-2 text-[10px] font-medium",
                                     p.id_ecommerce ? "border-emerald-300" : ""
                                   )}
-                                  title={
-                                    p.id_ecommerce
-                                      ? `Importado (ID: ${p.id_ecommerce})`
-                                      : "Por importar"
-                                  }
                                 >
                                   {p.id_ecommerce
                                     ? "importado"
