@@ -122,6 +122,7 @@ export default function ProductsPage() {
                 <SelectContent>
                   <SelectItem value="recent">Recentes</SelectItem>
                   <SelectItem value="name">Nome</SelectItem>
+                  <SelectItem value="cheapest">Preço</SelectItem>
                 </SelectContent>
               </Select>
 
