@@ -88,6 +88,18 @@ export default function ProductStockChart({ events }: Props) {
               <XAxis dataKey="x" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
+                contentStyle={{
+                  background: "var(--background)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "10px",
+                  color: "var(--popover-foreground)",
+                  boxShadow: "0 8px 24px var(--background)",
+                }}
+                wrapperClassName="recharts-tooltip-wrapper"
+                labelStyle={{ color: "var(--muted-foreground)" }}
+                itemStyle={{ color: "var(--foreground)" }}
+                // overlay de hover mais escuro no dark
+                cursor={{ fill: "var(--muted)" }}
                 formatter={(val: any) => (val == null ? "—" : String(val))}
                 labelFormatter={(l) => `Dia ${l}`}
               />
@@ -99,7 +111,8 @@ export default function ProductStockChart({ events }: Props) {
                   dataKey={key}
                   name={name}
                   dot={false}
-                  strokeWidth={2}
+                  strokeWidth={1}
+                  isAnimationActive={true}
                   connectNulls
                 />
               ))}

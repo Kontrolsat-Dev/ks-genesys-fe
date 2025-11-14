@@ -7,8 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { ProductMeta } from "@/api/products/types";
-import { fmtDate } from "./product-utils";
+import type { ProductMetaOut } from "@/api/products";
+import { fmtDate } from "@/helpers/fmtDate";
 
 type Props = { meta: ProductMetaOut[] };
 

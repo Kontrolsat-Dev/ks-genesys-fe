@@ -26,7 +26,7 @@ import Highlight from "@/components/genesys-ui/hightlight";
 import { cn } from "@/lib/utils";
 import { Loader2, Search, ExternalLink } from "lucide-react";
 import { useProductsList } from "./queries";
-import { fmtPrice } from "@/helpers/prices";
+import { fmtPrice } from "@/helpers/fmtPrices";
 import type { ProductExt } from "@/api/products";
 import {
   OffersInline,

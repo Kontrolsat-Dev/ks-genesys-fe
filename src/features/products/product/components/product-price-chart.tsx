@@ -11,7 +11,7 @@ import {
   Legend,
 } from "recharts";
 import type { ProductEventOut } from "@/api/products/types";
-import { fmtMoney } from "./product-utils";
+import { fmtMoney } from "@/helpers/fmtPrices";
 
 // YYYY-MM-DD
 function dayKey(d: string) {
@@ -94,6 +94,18 @@ export default function ProductPriceChart({ events }: Props) {
               <XAxis dataKey="x" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
+                contentStyle={{
+                  background: "var(--background)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "10px",
+                  color: "var(--popover-foreground)",
+                  boxShadow: "0 8px 24px var(--background)",
+                }}
+                wrapperClassName="recharts-tooltip-wrapper"
+                labelStyle={{ color: "var(--muted-foreground)" }}
+                itemStyle={{ color: "var(--foreground)" }}
+                // overlay de hover mais escuro no dark
+                cursor={{ fill: "var(--muted)" }}
                 formatter={(val: any) =>
                   val == null ? "—" : fmtMoney(String(val))
                 }

@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import type { ProductStatsOut } from "@/api/products/types";
-import { fmtDateShort } from "./product-utils";
+import { fmtDateShort } from "@/helpers/fmtDate";
 
 type Props = { stats?: ProductStatsOut };
 

@@ -1,7 +1,7 @@
 import { TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { fmtPrice } from "@/helpers/prices";
+import { fmtPrice } from "@/helpers/fmtPrices";
 import { Tooltip } from "@radix-ui/react-tooltip";
-import type { OfferOut } from "../types";
+import type { OfferOut } from "@/api/products/types";
 import { cn } from "@/lib/utils";
 
 export default function OffersInline({

@@ -8,7 +8,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { OfferOut } from "@/api/products/types";
-import { fmtDate, fmtMoney } from "./product-utils";
+import { fmtMoney } from "@/helpers/fmtPrices";
+import { fmtDate } from "@/helpers/fmtDate";
 
 type Props = { offers: OfferOut[] };
 

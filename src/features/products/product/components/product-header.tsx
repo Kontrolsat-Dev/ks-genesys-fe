@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import type { ProductOut } from "@/api/products/types";
-import { cx } from "./product-utils";
+import { cx } from "@/lib/utils";
 
 type Props = {
   product?: ProductOut;
