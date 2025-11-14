@@ -8,24 +8,73 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Legend,
 } from "recharts";
-import type { SeriesDailyPoint } from "@/api/products/types";
+import type { ProductEventOut } from "@/api/products/types";
 
-type Props = { points: SeriesDailyPoint[] };
+function dayKey(d: string) {
+  const dt = new Date(d);
+  const yyyy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
 
-export default function ProductStockChart({ points }: Props) {
-  const data = (points ?? []).map((r) => ({
-    x: new Date(r.date).toLocaleDateString(),
-    stock: typeof r.stock === "number" ? r.stock : null,
-  }));
+type SeriesMeta = { key: string; supplierId: number; name: string };
+
+type Props = { events: ProductEventOut[] };
+
+export default function ProductStockChart({ events }: Props) {
+  const suppliers = new Map<number, string>();
+  for (const e of events ?? []) {
+    if (typeof e.id_supplier === "number") {
+      suppliers.set(e.id_supplier, e.supplier_name ?? `#${e.id_supplier}`);
+    }
+  }
+
+  const byDay = new Map<string, Map<number, number | null>>();
+  for (const e of events ?? []) {
+    const key = dayKey(e.created_at);
+    if (!byDay.has(key)) byDay.set(key, new Map());
+    const perSup = byDay.get(key)!;
+
+    const stockNum =
+      typeof e.stock === "number" && Number.isFinite(e.stock) ? e.stock : null;
+
+    if (typeof e.id_supplier === "number") {
+      perSup.set(e.id_supplier, stockNum);
+    }
+  }
+
+  const days = Array.from(byDay.keys()).sort();
+  const seriesMeta: SeriesMeta[] = Array.from(suppliers.entries()).map(
+    ([id, name]) => ({ key: `s_${id}`, supplierId: id, name })
+  );
+
+  const data = days.map((k) => {
+    const label = new Date(k).toLocaleDateString();
+    const row: Record<string, any> = { x: label };
+    const perSup = byDay.get(k)!;
+    for (const { supplierId, key } of seriesMeta) {
+      row[key] = perSup.has(supplierId) ? perSup.get(supplierId) : null;
+    }
+    return row;
+  });
+
+  const totalPoints =
+    data.reduce(
+      (acc, row) =>
+        acc + seriesMeta.reduce((n, s) => (row[s.key] != null ? n + 1 : n), 0),
+      0
+    ) ?? 0;
 
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium">Evolução do stock</h3>
-        <Badge variant="outline">
-          pontos: {data.filter((d) => d.stock != null).length}
-        </Badge>
+        <h3 className="text-sm font-medium">
+          Evolução do stock por fornecedor
+        </h3>
+        <Badge variant="outline">pontos: {totalPoints}</Badge>
       </div>
       <div className="h-64">
         {data.length === 0 ? (
@@ -42,12 +91,18 @@ export default function ProductStockChart({ points }: Props) {
                 formatter={(val: any) => (val == null ? "—" : String(val))}
                 labelFormatter={(l) => `Dia ${l}`}
               />
-              <Line
-                type="monotone"
-                dataKey="stock"
-                dot={false}
-                strokeWidth={2}
-              />
+              <Legend />
+              {seriesMeta.map(({ key, name }) => (
+                <Line
+                  key={key}
+                  type="monotone"
+                  dataKey={key}
+                  name={name}
+                  dot={false}
+                  strokeWidth={2}
+                  connectNulls
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         )}

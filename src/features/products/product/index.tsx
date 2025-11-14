@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
@@ -33,8 +33,6 @@ export default function ProductPage() {
     productId,
     params
   );
-  const points = useMemo(() => data?.series_daily ?? [], [data?.series_daily]);
-
   if (!Number.isFinite(productId) || productId <= 0) {
     return (
       <div className="p-4">
@@ -119,8 +117,8 @@ export default function ProductPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <ProductPriceChart points={points} />
-        <ProductStockChart points={points} />
+        <ProductPriceChart events={data?.events ?? []} />
+        <ProductStockChart events={data?.events ?? []} />
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ function KV({
 export default function ProductImageCard({ product: p }: Props) {
   return (
     <Card className="p-6 space-y-4">
-      <div className="aspect-video w-full overflow-hidden rounded-lg bg-muted/40 flex items-center justify-center">
+      <div className="aspect-video w-full overflow-hidden rounded-lg bg-white flex items-center justify-center">
         {p?.image_url ? (
           // eslint-disable-next-line jsx-a11y/alt-text
           <img
