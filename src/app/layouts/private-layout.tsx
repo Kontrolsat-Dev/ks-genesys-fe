@@ -42,7 +42,10 @@ const PrivateLayout: React.FC = () => {
             onToggleMini={() => setMini((v) => !v)}
             onToggleMobile={() => setMobileOpen((v) => !v)}
           />
-          <main className="flex-1 overflow-auto px-8 pt-5 pb-10">
+          <main
+            className="flex-1 overflow-auto px-8 pt-5 pb-10"
+            id="app-scroll-root"
+          >
             <Outlet />
           </main>
         </div>

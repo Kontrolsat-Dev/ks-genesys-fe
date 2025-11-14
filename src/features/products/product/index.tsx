@@ -101,12 +101,12 @@ export default function ProductPage() {
         isRefreshing={isRefetching}
       />
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         <div className="space-y-6">
           <ProductImageCard product={p} />
         </div>
 
-        <div className="space-y-6 h-auto">
+        <div className="space-y-6 col-span-2 h-auto">
           <ProductInfo
             product={p}
             metaSlot={<ProductMetaTable meta={data?.meta ?? []} />}

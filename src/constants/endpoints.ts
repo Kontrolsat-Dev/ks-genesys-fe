@@ -29,4 +29,10 @@ export const Endpoints = {
   // Products
   PRODUCTS: "products",
   PRODUCT: (id: number) => `products/${id}`,
+
+  // Brands
+  BRANDS: "brands",
+
+  // Categories
+  CATEGORIES: "categories",
 } as const;

@@ -35,6 +35,7 @@ import {
   TableEmpty,
   TableSkeleton,
 } from "@/features/products/components";
+import { useScrollTop, scrollTopNow } from "@/lib/hooks/use-scroll-top";
 
 /* ---------------- helpers ---------------- */
 function useDebounced<T>(value: T, delay = 350) {
@@ -151,10 +152,17 @@ export default function ProductsPage() {
     });
   };
 
-  const goPrev = () =>
+  const goPrev = () => {
+    scrollTopNow(0, "smooth");
     updateSp((u) => u.set("page", String(Math.max(1, page - 1))));
-  const goNext = () =>
+  };
+
+  const goNext = () => {
+    scrollTopNow(0, "smooth");
     updateSp((u) => u.set("page", String(Math.min(totalPages, page + 1))));
+  };
+
+  useScrollTop({ deps: [page], offset: 0, behavior: "smooth" });
 
   return (
     <TooltipProvider delayDuration={100}>
