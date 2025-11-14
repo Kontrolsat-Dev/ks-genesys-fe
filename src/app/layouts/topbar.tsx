@@ -19,6 +19,7 @@ import {
 import { useTheme } from "@/providers/theme-provider";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { parseProductSearch } from "@/lib/product-search";
 
 type Props = {
   onToggleMobile: () => void; // abre/fecha gaveta no mobile
@@ -62,9 +63,18 @@ export default function Topbar({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const query = q.trim();
-    if (!query) return;
-    navigate(`/search?q=${encodeURIComponent(query)}`);
+    const intent = parseProductSearch(q);
+    if (intent.kind === "detail") {
+      navigate(`/products/${intent.id}`);
+      return;
+    }
+    const usp = new URLSearchParams();
+    if (intent.q) usp.set("q", intent.q);
+    if (intent.gtin) usp.set("gtin", intent.gtin);
+    if (intent.partnumber) usp.set("partnumber", intent.partnumber);
+    // Mantém a página em 1 sempre que há nova pesquisa
+    usp.set("page", "1");
+    navigate(`/products?${usp.toString()}`);
   };
 
   return (

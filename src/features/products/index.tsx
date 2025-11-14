@@ -1,5 +1,6 @@
+// src/features/products/index.tsx
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -45,22 +46,72 @@ function useDebounced<T>(value: T, delay = 350) {
   return v;
 }
 
+const parseIntSafe = (v: string | null, def = 1) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : def;
+};
+const parseBoolOrNull = (v: string | null): boolean | null => {
+  if (v === null) return null;
+  if (v === "true") return true;
+  if (v === "false") return false;
+  return null;
+};
+const hasStockToUI = (b: boolean | null): "all" | "in" | "out" =>
+  b === null ? "all" : b ? "in" : "out";
+
 /* ---------------- page ---------------- */
 export default function ProductsPage() {
-  const [qInput, setQInput] = useState("");
-  const q = useDebounced(qInput.trim(), 350) || null;
+  const [sp, setSp] = useSearchParams();
 
-  const [hasStock, setHasStock] = useState<"all" | "in" | "out">("all");
-  const [sort, setSort] = useState<"recent" | "name">("recent");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  // URL → filtros (source of truth)
+  const page = parseIntSafe(sp.get("page"), 1);
+  const pageSize = parseIntSafe(sp.get("page_size"), 20);
+  const qParam = sp.get("q");
+  const gtin = sp.get("gtin");
+  const partnumber = sp.get("partnumber");
+  const id_brand = sp.get("id_brand") ? Number(sp.get("id_brand")) : null;
+  const id_category = sp.get("id_category")
+    ? Number(sp.get("id_category"))
+    : null;
+  const id_supplier = sp.get("id_supplier")
+    ? Number(sp.get("id_supplier"))
+    : null;
+  const hasStock = parseBoolOrNull(sp.get("has_stock")); // true | false | null
+  const hasStockUI = hasStockToUI(hasStock);
+  const sort = (sp.get("sort") as "recent" | "name" | "cheapest") ?? "recent";
 
+  // input de pesquisa (controlado) sincronizado com URL ?q=
+  const [qInput, setQInput] = useState(qParam ?? "");
+  useEffect(() => {
+    // quando a URL mudar (vindo do Topbar, back/forward, etc.), atualiza o input
+    setQInput(qParam ?? "");
+  }, [qParam]);
+
+  const qDebounced = useDebounced(qInput.trim(), 350);
+  // aplica debounce na URL (e volta a page=1)
+  useEffect(() => {
+    const usp = new URLSearchParams(sp);
+    if (qDebounced) usp.set("q", qDebounced);
+    else usp.delete("q");
+    usp.delete("gtin");
+    usp.delete("partnumber");
+    usp.set("page", "1");
+    setSp(usp, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qDebounced]);
+
+  // chamada à API com os filtros da URL
   const { data, isLoading, isFetching } = useProductsList({
     page,
     pageSize,
-    q,
+    q: qParam,
+    gtin,
+    partnumber,
+    id_brand,
+    id_category,
+    id_supplier,
+    has_stock: hasStock,
     sort,
-    has_stock: hasStock === "all" ? null : hasStock === "in",
   });
 
   const totalPages = useMemo(
@@ -70,14 +121,45 @@ export default function ProductsPage() {
   const elapsedMs = (data as any)?.elapsedMs as number | undefined;
   const items = (data?.items as unknown as ProductExt[]) ?? [];
 
-  useEffect(() => {
-    setPage(1);
-  }, [q, hasStock, sort, pageSize]);
+  // handlers de UI → URL
+  const updateSp = (mutate: (u: URLSearchParams) => void) => {
+    const usp = new URLSearchParams(sp);
+    mutate(usp);
+    setSp(usp);
+  };
+
+  const onChangeHasStock = (val: "all" | "in" | "out") => {
+    updateSp((u) => {
+      if (val === "all") u.delete("has_stock");
+      if (val === "in") u.set("has_stock", "true");
+      if (val === "out") u.set("has_stock", "false");
+      u.set("page", "1");
+    });
+  };
+
+  const onChangeSort = (val: "recent" | "name" | "cheapest") => {
+    updateSp((u) => {
+      u.set("sort", val);
+      u.set("page", "1");
+    });
+  };
+
+  const onChangePageSize = (val: number) => {
+    updateSp((u) => {
+      u.set("page_size", String(val));
+      u.set("page", "1");
+    });
+  };
+
+  const goPrev = () =>
+    updateSp((u) => u.set("page", String(Math.max(1, page - 1))));
+  const goNext = () =>
+    updateSp((u) => u.set("page", String(Math.min(totalPages, page + 1))));
 
   return (
     <TooltipProvider delayDuration={100}>
       <div className="mx-auto space-y-6">
-        {/* Header (desktop-only mindset; sem barra colorida) */}
+        {/* Header */}
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -103,8 +185,8 @@ export default function ProductsPage() {
 
               {/* Stock */}
               <Select
-                value={hasStock}
-                onValueChange={(v) => setHasStock(v as any)}
+                value={hasStockUI}
+                onValueChange={(v) => onChangeHasStock(v as any)}
               >
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Stock" />
@@ -117,7 +199,10 @@ export default function ProductsPage() {
               </Select>
 
               {/* Sort */}
-              <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+              <Select
+                value={sort}
+                onValueChange={(v) => onChangeSort(v as any)}
+              >
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Ordenar por" />
                 </SelectTrigger>
@@ -131,7 +216,7 @@ export default function ProductsPage() {
               {/* Page size */}
               <Select
                 value={String(pageSize)}
-                onValueChange={(v) => setPageSize(Number(v))}
+                onValueChange={(v) => onChangePageSize(Number(v))}
               >
                 <SelectTrigger className="w-[120px]">
                   <SelectValue placeholder="Tamanho" />
@@ -158,7 +243,7 @@ export default function ProductsPage() {
           </div>
         </Card>
 
-        {/* Tabela (desktop) */}
+        {/* Tabela */}
         <Card className="overflow-hidden p-0">
           <div className="min-w-full overflow-x-auto">
             <Table>
@@ -175,15 +260,12 @@ export default function ProductsPage() {
               </TableHeader>
 
               <TableBody>
-                {/* Skeleton */}
                 {isLoading && (
                   <TableSkeleton rows={10} cols={7} rightAlignCols={[4, 5]} />
                 )}
 
-                {/* Empty */}
                 {!isLoading && items.length === 0 && <TableEmpty />}
 
-                {/* Rows */}
                 {!isLoading &&
                   items.map((p) => {
                     const initials = (p.brand_name || p.name || "?")
@@ -213,10 +295,12 @@ export default function ProductsPage() {
                             </Avatar>
 
                             <div className="min-w-0">
-                              {/* Nome + badge importação alinhados */}
                               <div className="flex items-center gap-2">
                                 <div className="truncate font-medium leading-tight max-w-[32ch]">
-                                  <Highlight text={p.name || "—"} query={q} />
+                                  <Highlight
+                                    text={p.name || "—"}
+                                    query={qParam || ""}
+                                  />
                                 </div>
                                 <Badge
                                   variant={
@@ -243,7 +327,10 @@ export default function ProductsPage() {
                         {/* Marca */}
                         <TableCell className="truncate">
                           {p.brand_name ? (
-                            <Highlight text={p.brand_name} query={q} />
+                            <Highlight
+                              text={p.brand_name}
+                              query={qParam || ""}
+                            />
                           ) : (
                             "—"
                           )}
@@ -254,7 +341,7 @@ export default function ProductsPage() {
                           <div className="text-xs">
                             <span className="text-muted-foreground">GTIN:</span>{" "}
                             {p.gtin ? (
-                              <Highlight text={p.gtin} query={q} />
+                              <Highlight text={p.gtin} query={qParam || ""} />
                             ) : (
                               "—"
                             )}
@@ -264,7 +351,7 @@ export default function ProductsPage() {
                             {p.partnumber ? (
                               <Highlight
                                 text={String(p.partnumber)}
-                                query={q}
+                                query={qParam || ""}
                               />
                             ) : (
                               "—"
@@ -336,7 +423,7 @@ export default function ProductsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={goPrev}
                 disabled={(data?.page ?? page) <= 1 || isFetching}
               >
                 Anterior
@@ -344,7 +431,7 @@ export default function ProductsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage((p) => Math.max(1, p + 1))}
+                onClick={goNext}
                 disabled={(data?.page ?? page) >= totalPages || isFetching}
               >
                 Seguinte
