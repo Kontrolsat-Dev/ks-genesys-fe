@@ -118,7 +118,7 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <ProductPriceChart points={points} />
         <ProductStockChart points={points} />
       </div>

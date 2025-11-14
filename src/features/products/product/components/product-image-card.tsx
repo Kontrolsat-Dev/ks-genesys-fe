@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import type { ProductOut } from "@/api/products/types";
 import { fmtDate } from "./product-utils";
 
@@ -15,7 +14,7 @@ function KV({
   mono?: boolean;
 }) {
   return (
-    <div>
+    <div className="border p-2 rounded hover:bg-accent transitio duration-200">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className={mono ? "text-sm font-mono" : "text-sm"}>
         {value || "—"}
@@ -40,18 +39,12 @@ export default function ProductImageCard({ product: p }: Props) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-4 text-center gap-4 text-sm">
         <KV label="Criado" value={fmtDate(p?.created_at)} />
         <KV label="Atualizado" value={fmtDate(p?.updated_at)} />
         <KV label="Peso" value={p?.weight_str || "—"} />
         <KV label="Categoria" value={p?.category_name || "—"} />
       </div>
-
-      <Separator />
-      <h3 className="text-sm font-medium">Resumo</h3>
-      <p className="text-xs text-muted-foreground">
-        Visualiza a imagem, datas principais e atributos rápidos.
-      </p>
     </Card>
   );
 }

@@ -1,9 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import type { ProductStats } from "@/api/products/types";
+import type { ProductStatsOut } from "@/api/products/types";
 import { fmtDateShort } from "./product-utils";
 
-type Props = { stats?: ProductStats };
+type Props = { stats?: ProductStatsOut };
 
 function Stat({ title, value }: { title: string; value: string }) {
   return (
@@ -16,8 +15,15 @@ function Stat({ title, value }: { title: string; value: string }) {
 
 export default function ProductStats({ stats }: Props) {
   return (
-    <Card className="p-6 space-y-4">
-      <h3 className="text-sm font-medium">Estatísticas</h3>
+    <Card className="p-6 space-y-0">
+      <div>
+        <h3 className="text-md font-medium">Estatísticas</h3>
+        <div className="text-xs text-muted-foreground">
+          {stats?.last_change_at
+            ? `Última alteração: ${fmtDateShort(stats.last_change_at)}`
+            : "Sem alterações registadas"}
+        </div>
+      </div>
       <div className="grid grid-cols-4 gap-3">
         <Stat
           title="Fornecedores"
@@ -29,12 +35,6 @@ export default function ProductStats({ stats }: Props) {
         />
         <Stat title="1ª vez visto" value={fmtDateShort(stats?.first_seen)} />
         <Stat title="Última vez" value={fmtDateShort(stats?.last_seen)} />
-      </div>
-      <Separator />
-      <div className="text-xs text-muted-foreground">
-        {stats?.last_change_at
-          ? `Última alteração: ${fmtDateShort(stats.last_change_at)}`
-          : "Sem alterações registadas"}
       </div>
     </Card>
   );
