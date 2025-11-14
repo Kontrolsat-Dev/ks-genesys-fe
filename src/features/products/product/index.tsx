@@ -103,18 +103,18 @@ export default function ProductPage() {
         isRefreshing={isRefetching}
       />
 
-      <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         <div className="space-y-6">
           <ProductImageCard product={p} />
-          <ProductStats stats={data?.stats} />
         </div>
 
-        <div className="2xl:col-span-2 space-y-6">
+        <div className="space-y-6 h-auto">
           <ProductInfo
             product={p}
             metaSlot={<ProductMetaTable meta={data?.meta ?? []} />}
             offersSlot={<ProductOffersTable offers={data?.offers ?? []} />}
           />
+          <ProductStats stats={data?.stats} />
         </div>
       </div>
 

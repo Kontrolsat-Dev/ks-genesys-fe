@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import type { ProductOut } from "@/api/products/types";
+import ExpandableText from "./expandable-text";
 
 type Props = {
   product?: ProductOut;
@@ -59,9 +60,7 @@ export default function ProductInfo({
           <Separator />
           <div>
             <h3 className="text-sm font-medium mb-2">Descrição</h3>
-            <p className="text-sm whitespace-pre-wrap leading-relaxed">
-              {p?.description?.trim() || "—"}
-            </p>
+            <ExpandableText text={p?.description} collapsedLines={2} />
           </div>
         </TabsContent>
 
