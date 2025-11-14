@@ -28,4 +28,5 @@ export const Endpoints = {
 
   // Products
   PRODUCTS: "products",
+  PRODUCT: (id: number) => `products/${id}`,
 } as const;

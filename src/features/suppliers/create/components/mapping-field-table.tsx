@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import type { ProfileFormRHF } from "../mapping-types";
 import MappingFieldAdvanced from "./mapping-field-advanced";
 
@@ -44,7 +45,7 @@ export default function MappingFieldTable() {
                   {...form.register(`fields.${idx}.source` as const)}
                 />
               </div>
-              <div className="col-span-1 flex justify-end gap-2">
+              <div className="col-span-1 flex justify-end gap-1 w-full">
                 <Button
                   type="button"
                   variant="outline"
@@ -55,11 +56,11 @@ export default function MappingFieldTable() {
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="destructive"
                   size="sm"
                   onClick={() => remove(idx)}
                 >
-                  Remover
+                  <Trash2 />
                 </Button>
               </div>
             </div>

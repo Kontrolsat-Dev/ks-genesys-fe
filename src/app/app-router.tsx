@@ -13,6 +13,7 @@ import SuppliersPage from "@/features/suppliers";
 import SuppliersCreatePage from "@/features/suppliers/create";
 import SupplierEditPage from "@/features/suppliers/edit";
 import ProductsPage from "@/features/products";
+import ProductPage from "@/features/products/product";
 
 export const router = createBrowserRouter([
   // público
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "suppliers/:id/edit", element: <SupplierEditPage /> },
       // Products
       { path: "products", element: <ProductsPage /> },
+      { path: "products/:id", element: <ProductPage /> },
     ],
   },
 

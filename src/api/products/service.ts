@@ -1,8 +1,12 @@
-// src/api/products/service.ts
 import { HttpClient } from "@/lib/http-client";
 import { Endpoints } from "@/constants/endpoints";
 import { authStore } from "@/lib/auth-store";
-import type { ProductListParams, ProductListResponse } from "./types";
+import type {
+  ProductListParams,
+  ProductListResponse,
+  ProductDetailParams,
+  ProductDetailResponse,
+} from "./types";
 
 export class ProductsService {
   private http: HttpClient;
@@ -16,6 +20,7 @@ export class ProductsService {
       });
   }
 
+  // Product list with filters
   list(params: ProductListParams = {}) {
     const {
       page = 1,
@@ -46,6 +51,20 @@ export class ProductsService {
         has_stock,
         id_supplier,
         sort,
+      },
+    });
+  }
+
+  // Single product complete details
+  get(id: number, params: ProductDetailParams = {}) {
+    return this.http.get<ProductDetailResponse>(Endpoints.PRODUCT(id), {
+      params: {
+        expand_meta: params.expand_meta ?? true,
+        expand_offers: params.expand_offers ?? true,
+        expand_events: params.expand_events ?? true,
+        events_days: params.events_days ?? 90,
+        events_limit: params.events_limit ?? 2000,
+        aggregate_daily: params.aggregate_daily ?? true,
       },
     });
   }

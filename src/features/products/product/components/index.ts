@@ -1,0 +1,9 @@
+export { default as ProductHeader } from "./product-header";
+export { default as ProductImageCard } from "./product-image-card";
+export { default as ProductStats } from "./product-stats";
+export { default as ProductInfo } from "./product-info";
+export { default as ProductMetaTable } from "./product-meta-table";
+export { default as ProductOffersTable } from "./product-offers-table";
+export { default as ProductPriceChart } from "./product-price-chart";
+export { default as ProductStockChart } from "./product-stock-chart";
+export * from "./product-utils";

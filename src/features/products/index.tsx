@@ -26,12 +26,14 @@ import Highlight from "@/components/genesys-ui/hightlight";
 import { cn } from "@/lib/utils";
 import { Loader2, Search, ExternalLink } from "lucide-react";
 import { useProductsList } from "./queries";
-import OffersInline from "./components/offers-inline";
 import { fmtPrice } from "@/helpers/prices";
-import type { ProductExt } from "./types";
-import StatusDot from "./components/status-dot";
-import TableSkeleton from "./components/table-skeleton";
-import TableEmpty from "./components/table-empty";
+import type { ProductExt } from "@/api/products";
+import {
+  OffersInline,
+  StatusDot,
+  TableEmpty,
+  TableSkeleton,
+} from "@/features/products/components";
 
 /* ---------------- helpers ---------------- */
 function useDebounced<T>(value: T, delay = 350) {
@@ -311,7 +313,7 @@ export default function ProductsPage() {
                             size="sm"
                             className="gap-1"
                           >
-                            <Link to={`/product/${p.id}`} title="Ver detalhe">
+                            <Link to={`/products/${p.id}`} title="Ver detalhe">
                               <ExternalLink className="h-4 w-4" />
                               Detalhe
                             </Link>
