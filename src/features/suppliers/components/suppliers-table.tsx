@@ -1,3 +1,4 @@
+// src/features/suppliers/components/suppliers-table.tsx
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -8,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Highlight from "@/components/genesys-ui/hightlight";
+import Highlight from "@/components/genesys-ui/Hightlight";
 import { fmtDate } from "@/lib/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner"; // ⟵ Toaster
 
 type Supplier = {
   id: number;
@@ -47,18 +49,18 @@ type Supplier = {
 };
 
 type Props = {
-  items?: Supplier[]; // ← pode vir undefined no 1º render
+  items?: Supplier[];
   isLoading?: boolean;
   emptyHref: string;
   searchQuery: string | null;
   SkeletonRows: React.ComponentType<{ rows?: number; cols?: number }>;
   onEdit?: (id: number) => void;
-  onDelete?: (id: number) => void;
+  onDelete?: (id: number) => Promise<void> | void; // ⟵ pode ser async
   deletingId?: number | null;
 };
 
 export default function SuppliersTable({
-  items = [], // ← default seguro
+  items = [],
   isLoading = false,
   emptyHref,
   searchQuery,
@@ -70,6 +72,19 @@ export default function SuppliersTable({
   const [confirmId, setConfirmId] = useState<number | null>(null);
 
   const hasItems = Array.isArray(items) && items.length > 0;
+
+  async function handleDelete(s: Supplier) {
+    setConfirmId(null);
+    try {
+      await Promise.resolve(onDelete?.(s.id));
+      toast.success(`Fornecedor ${s.name} removido`);
+    } catch (err: any) {
+      const msg =
+        (typeof err === "object" && err?.message) ||
+        "Não foi possível remover. Tente novamente.";
+      toast.error(`Falha ao remover ${s.name}`, { description: msg });
+    }
+  }
 
   return (
     <Table>
@@ -87,7 +102,6 @@ export default function SuppliersTable({
 
       <TableBody>
         {isLoading ? (
-          // NÃO envolver em TableRow/TableCell
           <SkeletonRows rows={8} cols={7} />
         ) : !hasItems ? (
           <TableRow>
@@ -230,10 +244,7 @@ export default function SuppliersTable({
                             </AlertDialogCancel>
                             <AlertDialogAction
                               className="bg-red-600 hover:bg-red-700"
-                              onClick={() => {
-                                setConfirmId(null);
-                                onDelete?.(s.id);
-                              }}
+                              onClick={() => handleDelete(s)}
                             >
                               Remover
                             </AlertDialogAction>
