@@ -11,6 +11,7 @@ import {
   Legend,
 } from "recharts";
 import type { ProductEventOut } from "@/api/products/types";
+import { getColor } from "@/constants/colors";
 
 function dayKey(d: string) {
   const dt = new Date(d);
@@ -20,7 +21,12 @@ function dayKey(d: string) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-type SeriesMeta = { key: string; supplierId: number; name: string };
+type SeriesMeta = {
+  key: string;
+  supplierId: number;
+  name: string;
+  color: string;
+};
 
 type Props = { events: ProductEventOut[] };
 
@@ -48,7 +54,12 @@ export default function ProductStockChart({ events }: Props) {
 
   const days = Array.from(byDay.keys()).sort();
   const seriesMeta: SeriesMeta[] = Array.from(suppliers.entries()).map(
-    ([id, name]) => ({ key: `s_${id}`, supplierId: id, name })
+    ([id, name], idx) => ({
+      key: `s_${id}`,
+      supplierId: id,
+      name,
+      color: getColor(idx),
+    })
   );
 
   const data = days.map((k) => {
@@ -67,6 +78,28 @@ export default function ProductStockChart({ events }: Props) {
         acc + seriesMeta.reduce((n, s) => (row[s.key] != null ? n + 1 : n), 0),
       0
     ) ?? 0;
+
+  // Legend custom para colorir também o texto
+  const LegendContent = (props: any) => {
+    const payload = (props?.payload ?? []) as Array<{
+      value: string;
+      color: string;
+      dataKey: string;
+    }>;
+    return (
+      <ul className="flex flex-wrap gap-3 text-xs">
+        {payload.map((entry) => (
+          <li key={entry.dataKey} className="flex items-center gap-1">
+            <span
+              className="inline-block h-2 w-2 rounded"
+              style={{ background: entry.color }}
+            />
+            <span style={{ color: entry.color }}>{entry.value}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
     <Card className="p-6">
@@ -98,22 +131,22 @@ export default function ProductStockChart({ events }: Props) {
                 wrapperClassName="recharts-tooltip-wrapper"
                 labelStyle={{ color: "var(--muted-foreground)" }}
                 itemStyle={{ color: "var(--foreground)" }}
-                // overlay de hover mais escuro no dark
                 cursor={{ fill: "var(--muted)" }}
                 formatter={(val: any) => (val == null ? "—" : String(val))}
                 labelFormatter={(l) => `Dia ${l}`}
               />
-              <Legend />
-              {seriesMeta.map(({ key, name }) => (
+              <Legend content={<LegendContent />} />
+              {seriesMeta.map(({ key, name, color }) => (
                 <Line
                   key={key}
                   type="monotone"
                   dataKey={key}
                   name={name}
                   dot={false}
-                  strokeWidth={1}
-                  isAnimationActive={true}
+                  strokeWidth={1.75}
+                  isAnimationActive
                   connectNulls
+                  stroke={color}
                 />
               ))}
             </LineChart>
