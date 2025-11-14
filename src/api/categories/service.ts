@@ -18,7 +18,6 @@ export class CategoriesService {
 
   list(params: CategoriesListParams = {}) {
     const { page = 1, pageSize = 20, q = null } = params;
-    // ⚠️ Alinhado com OpenAPI: search + page_size
     return this.http.get<CategoriesListResponse>(Endpoints.CATEGORIES, {
       params: {
         page,
