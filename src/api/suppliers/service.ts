@@ -35,20 +35,36 @@ export class SuppliersService {
   }
 
   // update composto (supplier/feed/mapper)
-  updateSupplierDeep(id: number, payload: SupplierUpdateRequest) {
+  updateSupplierBundle(id: number, payload: SupplierUpdateRequest) {
     return this.http.put<SupplierDetailOut>(
       Endpoints.SUPPLIER_BY_ID(id),
       payload
     );
   }
+
+  // Supplier-only: por agora continua via bundle (não tens endpoint dedicado)
   updateSupplierOnly(id: number, supplier: SupplierCreate) {
-    return this.updateSupplierDeep(id, { supplier });
+    return this.updateSupplierBundle(id, { supplier });
   }
+
+  // 2) FEED específico (usa o endpoint /feeds/supplier/{id_supplier})
   updateSupplierFeed(id: number, feed: SupplierFeedCreate) {
-    return this.updateSupplierDeep(id, { feed });
+    return this.http.put<SupplierFeedOut>(Endpoints.FEED_BY_SUPPLIER(id), feed);
   }
-  updateSupplierMapper(id: number, mapper: MapperUpsertIn) {
-    return this.updateSupplierDeep(id, { mapper });
+
+  // 3) MAPPER específico (usa /mappers/feed/{id_feed})
+  updateSupplierMapper(idFeed: number, payload: MapperUpsertIn) {
+    return this.http.put<FeedMapperOut>(
+      Endpoints.MAPPER_BY_FEED(idFeed),
+      payload
+    );
+  }
+
+  validateMapper(idFeed: number, payload: MapperValidateIn) {
+    return this.http.post<MapperValidateOut>(
+      Endpoints.MAPPER_VALIDATE(idFeed),
+      payload
+    );
   }
 
   // detalhe e delete
@@ -91,12 +107,7 @@ export class SuppliersService {
       Endpoints.MAPPER_BY_SUPPLIER(supplierId)
     );
   }
-  validateMapper(feedId: number, payload: MapperValidateIn) {
-    return this.http.post<MapperValidateOut>(
-      Endpoints.MAPPER_VALIDATE(feedId),
-      payload
-    );
-  }
+
   listMapperOps() {
     return this.http.get<
       Array<{ op: string; label?: string; arity?: number; input?: string }>

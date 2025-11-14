@@ -6,6 +6,7 @@ import type {
   SupplierFeedCreate,
   MapperValidateIn,
   MapperValidateOut,
+  MapperUpsertIn,
 } from "@/api/suppliers";
 import { toast } from "sonner";
 
@@ -39,7 +40,7 @@ export function useUpdateSupplierFeed(
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: SupplierFeedCreate) =>
-      suppliersClient.updateSupplierFeed(supplierId, payload),
+      suppliersClient.upsertSupplierFeed(supplierId, payload),
     onSuccess: async () => {
       toast.success("Feed atualizado com sucesso.");
       await qc.invalidateQueries({ queryKey: supplierKeys.root });
@@ -75,15 +76,17 @@ export function useValidateMapper(feedId?: number) {
 }
 
 export function useUpdateSupplierMapper(
-  supplierId: number,
+  feedId: number | undefined,
   onSuccess?: OnSuccessCb
 ) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: {
-      profile: Record<string, any>;
-      bump_version?: boolean;
-    }) => suppliersClient.updateSupplierMapper(supplierId, payload),
+    mutationFn: (payload: MapperUpsertIn) => {
+      if (!feedId) {
+        throw new Error("Sem feed para guardar mapper.");
+      }
+      return suppliersClient.updateSupplierMapper(feedId, payload);
+    },
     onSuccess: async () => {
       toast.success("Mapper guardado com sucesso.");
       await qc.invalidateQueries({ queryKey: supplierKeys.root });

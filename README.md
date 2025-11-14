@@ -1,4 +1,3 @@
-
 ```
 Frontend
 ├─ .env
@@ -103,6 +102,7 @@ Frontend
 │  │  │  │  ├─ queries.ts
 │  │  │  │  └─ utils.ts
 │  │  │  ├─ edit
+│  │  │  │  ├─ queries.ts
 │  │  │  │  └─ index.tsx
 │  │  │  ├─ index.tsx
 │  │  │  └─ queries.ts
