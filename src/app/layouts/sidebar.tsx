@@ -42,7 +42,7 @@ const NAV_ITEMS: NavGroup[] = [
     items: [
       { to: "/products", label: "Produtos" },
       { to: "/brands", label: "Marcas" },
-      { to: "/categorias", label: "Categorias" },
+      { to: "/categories", label: "Categorias" },
     ],
   },
   {

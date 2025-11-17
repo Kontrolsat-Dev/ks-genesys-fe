@@ -26,6 +26,12 @@ export const Endpoints = {
   // Runs
   RUNS_INGEST_SUPPLIER: (id: number) => `runs/supplier/${id}/ingest`,
 
+  // Categories
+  CATEGORIES: "categories",
+
+  // Brands
+  BRANDS: "brands",
+
   // Products
   PRODUCTS: "products",
   PRODUCT: (id: number) => `products/${id}`,
