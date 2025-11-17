@@ -5,7 +5,7 @@ import { fmtMargin } from "@/helpers/fmtNumbers";
 
 type Props = { product?: ProductOut };
 
-function KV({
+function StatItem({
   label,
   value,
   mono = false,
@@ -15,36 +15,48 @@ function KV({
   mono?: boolean;
 }) {
   return (
-    <div className="border p-2 rounded hover:bg-accent transitio duration-200">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className={mono ? "text-sm font-mono" : "text-sm"}>
+    <div className="flex flex-col items-center gap-1 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-center justify-center">
+      <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center">
+        {label}
+      </div>
+      <div
+        className={cx(
+          mono ? "font-mono" : "",
+          "text-sm font-semibold text-foreground"
+        )}
+      >
         {value || "—"}
       </div>
     </div>
   );
 }
 
+import { cx } from "@/lib/utils";
+
 export default function ProductImageCard({ product: p }: Props) {
+  const marginStr = fmtMargin(p?.margin ?? null) ?? "—";
+
   return (
-    <Card className="p-6 space-y-4">
-      <div className="aspect-video w-full overflow-hidden rounded-lg bg-white flex items-center justify-center">
+    <Card className="h-full flex flex-col p-6 space-y-4 border border-border">
+      <div className="flex-1 flex items-center justify-center rounded-xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border overflow-hidden">
         {p?.image_url ? (
-          // eslint-disable-next-line jsx-a11y/alt-text
           <img
-            src={p.image_url}
+            src={p.image_url || "/placeholder.svg"}
             alt={p?.name ?? "product"}
-            className="h-full max-h-[360px] w-auto object-contain"
+            className="h-full max-h-96 w-auto object-contain p-4"
           />
         ) : (
-          <div className="text-xs text-muted-foreground">Sem imagem</div>
+          <div className="text-sm text-muted-foreground flex items-center justify-center h-64">
+            Sem imagem disponível
+          </div>
         )}
       </div>
 
-      <div className="grid grid-cols-4 text-center gap-4 text-sm">
-        <KV label="Criado" value={fmtDate(p?.created_at)} />
-        <KV label="Atualizado" value={fmtDate(p?.updated_at)} />
-        <KV label="Margem" value={fmtMargin(p?.margin) || "—"} />
-        <KV label="Categoria" value={p?.category_name || "—"} />
+      <div className="grid grid-cols-2 gap-2">
+        <StatItem label="Criado" value={fmtDate(p?.created_at)} />
+        <StatItem label="Atualizado" value={fmtDate(p?.updated_at)} />
+        <StatItem label="Margem" value={marginStr} />
+        <StatItem label="Categoria" value={p?.category_name || "—"} />
       </div>
     </Card>
   );

@@ -6,5 +6,4 @@ export { default as ProductMetaTable } from "./product-meta-table";
 export { default as ProductOffersTable } from "./product-offers-table";
 export { default as ProductPriceChart } from "./product-price-chart";
 export { default as ProductStockChart } from "./product-stock-chart";
-export { default as ExpandableText } from "./expandable-text";
 export { default as ProductLoadingPage } from "./product-loading-page";

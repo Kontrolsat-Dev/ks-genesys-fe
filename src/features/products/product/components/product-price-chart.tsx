@@ -90,14 +90,16 @@ export default function ProductPriceChart({ events }: Props) {
       dataKey: string;
     }>;
     return (
-      <ul className="flex flex-wrap gap-3 text-xs">
+      <ul className="flex flex-wrap gap-3 text-xs mt-4">
         {payload.map((entry) => (
           <li key={entry.dataKey} className="flex items-center gap-1">
             <span
               className="inline-block h-2 w-2 rounded"
               style={{ background: entry.color }}
             />
-            <span style={{ color: entry.color }}>{entry.value}</span>
+            <span style={{ color: entry.color }} className="font-medium">
+              {entry.value}
+            </span>
           </li>
         ))}
       </ul>
@@ -105,31 +107,39 @@ export default function ProductPriceChart({ events }: Props) {
   };
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium">
-          Evolução do preço por fornecedor
-        </h3>
-        <Badge variant="outline">pontos: {totalPoints}</Badge>
+    <Card className="p-6 border border-border">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">
+            Evolução do Preço por Fornecedor
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">Últimos 90 dias</p>
+        </div>
+        <Badge variant="secondary" className="text-xs">
+          {totalPoints} pontos
+        </Badge>
       </div>
       <div className="h-64">
         {data.length === 0 ? (
           <div className="text-sm text-muted-foreground h-full flex items-center justify-center">
-            Sem dados
+            Sem dados disponíveis
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="x" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="x"
+                tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+              />
+              <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} />
               <Tooltip
                 contentStyle={{
-                  background: "var(--background)",
+                  background: "var(--card)",
                   border: "1px solid var(--border)",
-                  borderRadius: "10px",
-                  color: "var(--popover-foreground)",
-                  boxShadow: "0 8px 24px var(--background)",
+                  borderRadius: "8px",
+                  color: "var(--foreground)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 wrapperClassName="recharts-tooltip-wrapper"
                 labelStyle={{ color: "var(--muted-foreground)" }}
@@ -148,7 +158,7 @@ export default function ProductPriceChart({ events }: Props) {
                   dataKey={key}
                   name={name}
                   dot={false}
-                  strokeWidth={1.75}
+                  strokeWidth={2}
                   isAnimationActive
                   connectNulls
                   stroke={color}

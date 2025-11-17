@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
+import { Card, CardAction } from "@/components/ui/card";
 import { useProductDetail } from "./queries";
 import type { ProductDetailParams } from "@/api/products/types";
 import {
@@ -21,7 +20,7 @@ export default function ProductPage() {
   const productId = id ? Number(id) : NaN;
   const nav = useNavigate();
 
-  const [params, _setParams] = useState<ProductDetailParams>({
+  const [params] = useState<ProductDetailParams>({
     expand_meta: true,
     expand_offers: true,
     expand_events: true,
@@ -34,11 +33,14 @@ export default function ProductPage() {
     productId,
     params
   );
+
   if (!Number.isFinite(productId) || productId <= 0) {
     return (
       <div className="p-4">
-        <Card className="p-6">
-          <p className="text-sm text-red-500">ID de produto inválido.</p>
+        <Card className="p-6 border border-destructive bg-destructive/5">
+          <p className="text-sm text-destructive font-medium">
+            ID de produto inválido.
+          </p>
         </Card>
       </div>
     );
@@ -51,47 +53,58 @@ export default function ProductPage() {
   if (error) {
     return (
       <div className="p-4">
-        <Card className="p-6">
-          <h1 className="text-lg font-semibold mb-2">
+        <Card className="p-6 border border-destructive bg-destructive/5">
+          <h1 className="text-lg font-semibold text-destructive mb-2">
             Não foi possível carregar o produto
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {String((error as any)?.message ?? "Erro")}
+          <p className="text-sm text-destructive/80">
+            {String((error as any)?.message ?? "Erro desconhecido")}
           </p>
         </Card>
       </div>
     );
   }
 
-  const p = data?.product;
+  if (!data) {
+    return null;
+  }
+
+  const { product: p, meta, offers, stats, events, best_offer } = data;
 
   return (
-    <div className="space-y-6">
-      <ProductHeader
-        product={p}
-        onBack={() => nav("/products")}
-        onRefresh={() => refetch()}
-        isRefreshing={isRefetching}
-      />
+    <div className="space-y-3 ">
+      <Card className="p-6">
+        <ProductHeader
+          product={p}
+          onBack={() => nav("/products")}
+          onRefresh={() => refetch()}
+          isRefreshing={isRefetching}
+        />
+      </Card>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="space-y-6">
+      <Card className="p-6">
+        <ProductStats stats={stats} bestOffer={best_offer} />
+      </Card>
+
+      {/* Topo: imagem + info em 2 colunas */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div>
           <ProductImageCard product={p} />
         </div>
 
-        <div className="space-y-6 h-auto">
+        <div className="lg:col-span-2">
           <ProductInfo
             product={p}
-            metaSlot={<ProductMetaTable meta={data?.meta ?? []} />}
-            offersSlot={<ProductOffersTable offers={data?.offers ?? []} />}
+            metaSlot={<ProductMetaTable meta={meta ?? []} />}
+            offersSlot={<ProductOffersTable offers={offers ?? []} />}
           />
         </div>
       </div>
-      <ProductStats stats={data?.stats} />
 
-      <div className="grid grid-cols-1 gap-6">
-        <ProductPriceChart events={data?.events ?? []} />
-        <ProductStockChart events={data?.events ?? []} />
+      {/* Gráficos de histórico */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ProductPriceChart events={events ?? []} />
+        <ProductStockChart events={events ?? []} />
       </div>
     </div>
   );
