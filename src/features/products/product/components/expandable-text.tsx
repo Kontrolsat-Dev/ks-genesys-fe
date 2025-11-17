@@ -1,20 +1,20 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { htmlToPlainText } from "@/helpers/html";
 
 type Props = {
   text?: string | null;
-  collapsedLines?: number; // default: 2
-  minCharsToToggle?: number; // default: 160
+  collapsedLines?: number;
+  minCharsToToggle?: number;
   className?: string;
   btnClassName?: string;
-  moreLabel?: string; // default: "Ver tudo"
-  lessLabel?: string; // default: "Ver menos"
+  moreLabel?: string;
+  lessLabel?: string;
 };
 
 export default function ExpandableText({
   text,
-  collapsedLines = 2,
   minCharsToToggle = 160,
   className,
   btnClassName,
@@ -23,7 +23,8 @@ export default function ExpandableText({
 }: Props) {
   const [expanded, setExpanded] = useState(false);
 
-  const safe = useMemo(() => (text ?? "").trim(), [text]);
+  const safe = useMemo(() => htmlToPlainText(text), [text]);
+
   const hasContent = safe.length > 0;
   const showToggle = hasContent && safe.length >= minCharsToToggle;
 
@@ -32,7 +33,7 @@ export default function ExpandableText({
       <p
         className={cn(
           "text-sm whitespace-pre-wrap leading-relaxed",
-          expanded ? "line-clamp-none" : `line-clamp-${collapsedLines}`
+          expanded ? "line-clamp-none" : "line-clamp-2"
         )}
       >
         {hasContent ? safe : "—"}

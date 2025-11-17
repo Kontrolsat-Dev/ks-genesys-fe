@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Highlight from "@/components/genesys-ui/Hightlight";
+import Highlight from "@/components/genesys-ui/hightlight";
 import { cn } from "@/lib/utils";
 import { Loader2, Search, ExternalLink } from "lucide-react";
 import { useProductsList } from "./queries";

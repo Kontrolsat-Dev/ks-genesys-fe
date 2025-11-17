@@ -1,4 +1,7 @@
+// src/api/products/types.ts
+
 // --- LISTAGEM ---
+
 export type ProductListParams = {
   page?: number;
   pageSize?: number; // envia como page_size
@@ -19,8 +22,8 @@ export type OfferOut = {
   supplier_name?: string | null;
   supplier_image?: string | null;
 
-  id_feed?: number | null;
-  sku?: string | null;
+  id_feed: number;
+  sku: string;
 
   price?: string | null;
   stock?: number | null;
@@ -28,46 +31,60 @@ export type OfferOut = {
   updated_at?: string | null;
 };
 
+/**
+ * Produto base — corresponde ao ProductOut do backend:
+ * NUNCA tem offers nem best_offer.
+ */
 export type ProductOut = {
   id: number;
   gtin?: string | null;
-  id_brand?: number | null;
   id_ecommerce?: number | null;
+  id_brand?: number | null;
   brand_name?: string | null;
   id_category?: number | null;
   category_name?: string | null;
   partnumber?: string | null;
   name?: string | null;
+  margin?: number | null;
   description?: string | null;
   image_url?: string | null;
   weight_str?: string | null;
-  created_at?: string;
+  created_at?: string | null;
   updated_at?: string | null;
+};
 
-  offers?: OfferOut[];
-  best_offer?: OfferOut | null;
+/**
+ * Item de lista — equivalente ao ProductListItemOut no backend:
+ * produto base + ofertas + best_offer.
+ */
+export type ProductListItemOut = ProductOut & {
+  offers: OfferOut[];
+  best_offer: OfferOut | null;
 };
 
 export type ProductListResponse = {
-  items: ProductOut[];
+  items: ProductListItemOut[];
   total: number;
   page: number;
   page_size: number;
 };
 
-export type ProductExt = ProductOut & {
-  brand_name?: string | null;
-  category_name?: string | null;
-  offers?: OfferOut[];
-  best_offer?: OfferOut | null;
-  id_ecommerce?: number | null;
-};
+/**
+ * Compat / alias para código legado.
+ * Se noutros sítios usares ProductExt para listagens,
+ * isto garante que continua a funcionar.
+ */
+export type ProductExt = ProductListItemOut;
 
 // --- DETALHE ---
+
 export type ProductMetaOut = {
   name: string;
   value: string;
-  created_at: string;
+  // Backend atualmente NÃO envia created_at.
+  // Mantemos como opcional para não arrebentar o componente,
+  // e depois podemos decidir se mostramos outra coisa ou removemos da UI.
+  created_at?: string | null;
 };
 
 export type ProductStatsOut = {
@@ -95,13 +112,23 @@ export type SeriesDailyPoint = {
 };
 
 export type ProductDetailResponse = {
+  /**
+   * Produto base — sem offers/best_offer,
+   * tal como no ProductDetailOut do backend.
+   */
   product: ProductOut;
+
   meta: ProductMetaOut[];
+
+  // Ofertas atuais (todas) e best_offer calculada via ProductActiveOffer
   offers: OfferOut[];
   best_offer: OfferOut | null;
+
   stats: ProductStatsOut;
-  events: ProductEventOut[];
-  series_daily: SeriesDailyPoint[];
+
+  // Backend pode devolver null ou omitir → tornamos opcionais
+  events?: ProductEventOut[] | null;
+  series_daily?: SeriesDailyPoint[] | null;
 };
 
 export type ProductDetailParams = {

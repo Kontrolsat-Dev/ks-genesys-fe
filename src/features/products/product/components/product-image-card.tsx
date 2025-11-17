@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import type { ProductOut } from "@/api/products/types";
 import { fmtDate } from "@/helpers/fmtDate";
+import { fmtMargin } from "@/helpers/fmtNumbers";
 
 type Props = { product?: ProductOut };
 
@@ -42,7 +43,7 @@ export default function ProductImageCard({ product: p }: Props) {
       <div className="grid grid-cols-4 text-center gap-4 text-sm">
         <KV label="Criado" value={fmtDate(p?.created_at)} />
         <KV label="Atualizado" value={fmtDate(p?.updated_at)} />
-        <KV label="Peso" value={p?.weight_str || "—"} />
+        <KV label="Margem" value={fmtMargin(p?.margin) || "—"} />
         <KV label="Categoria" value={p?.category_name || "—"} />
       </div>
     </Card>

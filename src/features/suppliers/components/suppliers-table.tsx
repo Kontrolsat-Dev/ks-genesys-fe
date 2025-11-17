@@ -1,6 +1,7 @@
 // src/features/suppliers/components/suppliers-table.tsx
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Highlight from "@/components/genesys-ui/hightlight";
 import {
   Table,
   TableBody,
@@ -9,8 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Highlight from "@/components/genesys-ui/Hightlight";
-import { fmtDate } from "@/lib/formatters";
+import { fmtDate } from "@/helpers/fmtDate";
+import { fmtMargin } from "@/helpers/fmtNumbers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -163,7 +164,7 @@ export default function SuppliersTable({
                 <TableCell>{s.country || "—"}</TableCell>
 
                 <TableCell className="text-right tabular-nums">
-                  {typeof s.margin === "number" ? `${s.margin}%` : "—"}
+                  {typeof s.margin === "number" ? fmtMargin(s.margin) : "—"}
                 </TableCell>
 
                 <TableCell>

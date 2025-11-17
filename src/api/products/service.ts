@@ -1,3 +1,4 @@
+// src/api/products/index.ts (ou equivalente)
 import { HttpClient } from "@/lib/http-client";
 import { Endpoints } from "@/constants/endpoints";
 import { authStore } from "@/lib/auth-store";
