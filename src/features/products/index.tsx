@@ -119,7 +119,7 @@ export default function ProductsPage() {
     [data]
   );
   const elapsedMs = (data as any)?.elapsedMs as number | undefined;
-  const items = (data?.items as unknown as ProductExt[]) ?? [];
+  const items: ProductExt[] = data?.items ?? [];
 
   // handlers de UI → URL
   const updateSp = (mutate: (u: URLSearchParams) => void) => {

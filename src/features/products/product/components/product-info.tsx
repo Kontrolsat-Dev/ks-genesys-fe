@@ -3,37 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import type { ProductOut } from "@/api/products/types";
 import ExpandableText from "@/components/genesys-ui/expandable-text";
+import { InfoField } from "./fields";
 
 type Props = {
   product?: ProductOut;
   metaSlot?: React.ReactNode;
   offersSlot?: React.ReactNode;
 };
-
-function InfoField({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </label>
-      <p
-        className={`text-sm ${
-          mono ? "font-mono" : "font-medium"
-        } text-foreground`}
-      >
-        {value || "—"}
-      </p>
-    </div>
-  );
-}
 
 export default function ProductInfo({
   product: p,
@@ -68,13 +44,22 @@ export default function ProductInfo({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InfoField label="GTIN" value={p?.gtin || "—"} mono />
             <InfoField label="MPN" value={p?.partnumber || "—"} mono />
-            <InfoField label="Marca" value={p?.brand_name || "—"} />
-            <InfoField label="Categoria" value={p?.category_name || "—"} />
+            <InfoField
+              label="Marca"
+              value={p?.brand_name || "—"}
+              link
+              target={`/products?id_brand=${p?.id_brand}`}
+            />
+            <InfoField
+              label="Categoria"
+              value={p?.category_name || "—"}
+              link
+              target={`/products?id_category=${p?.id_category}`}
+            />
             <InfoField label="Peso" value={p?.weight_str || "—"} />
             <InfoField
               label="ID E-commerce"
               value={p?.id_ecommerce ? String(p.id_ecommerce) : "—"}
-              mono
             />
           </div>
 

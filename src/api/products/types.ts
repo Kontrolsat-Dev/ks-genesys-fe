@@ -45,7 +45,7 @@ export type ProductOut = {
   category_name?: string | null;
   partnumber?: string | null;
   name?: string | null;
-  margin: number;
+  margin: number | null;
   description?: string | null;
   image_url?: string | null;
   weight_str?: string | null;

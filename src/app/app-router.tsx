@@ -16,6 +16,7 @@ import ProductsPage from "@/features/products";
 import ProductPage from "@/features/products/product";
 import CategoriesPage from "@/features/products/categories";
 import BrandsPage from "@/features/products/brands";
+import ManualRunsPage from "@/features/system/manual-runs";
 
 export const router = createBrowserRouter([
   // público
@@ -49,6 +50,8 @@ export const router = createBrowserRouter([
       { path: "categories", element: <CategoriesPage /> },
       // Brands
       { path: "brands", element: <BrandsPage /> },
+      // System
+      { path: "/manual-runs", element: <ManualRunsPage /> },
     ],
   },
 

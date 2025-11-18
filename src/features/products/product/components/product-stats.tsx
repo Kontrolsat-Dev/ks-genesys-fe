@@ -1,7 +1,7 @@
-import { Card } from "@/components/ui/card";
 import type { ProductStatsOut, OfferOut } from "@/api/products/types";
 import { fmtDateShort } from "@/helpers/fmtDate";
 import { fmtMoney } from "@/helpers/fmtPrices";
+import { CheckCircle, Package } from "lucide-react";
 
 type Props = { stats?: ProductStatsOut; bestOffer?: OfferOut | null };
 
@@ -46,24 +46,61 @@ export default function ProductStats({ stats, bestOffer }: Props) {
 
         {hasBest ? (
           <div
-            title="Oferta comunicada para o prestashop"
-            className="rounded-lg trannstion-all duration-200 border bg-green-400/20 border-green-400 text-black shaodw-primary hover:bg-primary/40 px-3 py-2 text-right text-xs dark:text-white min-w-[180px]"
+            title="Oferta comunicada para o PrestaShop"
+            className="group relative flex flex-col gap-2 rounded-xl border border-emerald-400/70 bg-emerald-50/80 px-4 py-3 shadow-sm ring-1 ring-emerald-500/10 transition-all duration-200 dark:border-emerald-500/60 dark:bg-emerald-900/40"
           >
-            <div className="flex items-center gap-1 text-md uppercase tracking-wide dark:text-white">
-              Oferta Ativa:
-              <div className="text-lg font-semibold">
-                {fmtMoney(bestOffer?.price)}
+            {/* Header */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-800 dark:text-emerald-200">
+                <CheckCircle className="h-4 w-4" />
+                Oferta ativa
+              </div>
+
+              <div className="inline-flex items-baseline gap-1 rounded-full bg-white/80 px-3 py-1 text-sm font-semibold text-emerald-900 shadow-sm dark:bg-emerald-900/80 dark:text-emerald-100">
+                <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-500 dark:text-emerald-300">
+                  Preço
+                </span>
+                <span className="text-lg leading-none">
+                  {fmtMoney(bestOffer?.price)}
+                </span>
               </div>
             </div>
-            <div className="text-[14px]  mt-0.5">
-              {bestOffer?.supplier_name ?? `#${bestOffer?.id_supplier}`} ·
-              stock:{" "}
-              {typeof bestOffer?.stock === "number" ? bestOffer.stock : "—"}
+
+            {/* Body */}
+            <div className="flex items-center justify-between gap-3 text-xs text-emerald-900/90 dark:text-emerald-50/90">
+              <div className="flex items-center gap-2">
+                <Package className="h-3.5 w-3.5 opacity-70" />
+                <span className="font-medium">
+                  {bestOffer?.supplier_name ??
+                    `Fornecedor #${bestOffer?.id_supplier}`}
+                </span>
+              </div>
+
+              <div className="inline-flex items-center gap-1 rounded-full bg-emerald-900/5 px-2.5 py-1 text-[11px] font-medium text-emerald-900 dark:bg-emerald-800/70 dark:text-emerald-100">
+                <span className="opacity-80">Stock</span>
+                <span className="font-semibold">
+                  {typeof bestOffer?.stock === "number" ? bestOffer.stock : "—"}
+                </span>
+              </div>
             </div>
           </div>
         ) : (
-          <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-center">
-            <div className="text-xs ">Sem oferta ativa</div>
+          <div
+            className="
+      flex min-w-[200px] flex-col items-center justify-center gap-1.5
+      rounded-xl border border-dashed border-border/70
+      bg-muted/40
+      px-4 py-3
+      text-center
+    "
+          >
+            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+              <Package className="h-3.5 w-3.5 opacity-60" />
+              Sem oferta ativa
+            </div>
+            <p className="text-[11px] text-muted-foreground/80">
+              Nenhum fornecedor com stock selecionado para este produto.
+            </p>
           </div>
         )}
       </div>

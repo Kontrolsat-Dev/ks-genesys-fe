@@ -73,6 +73,7 @@ const NAV_ITEMS: NavGroup[] = [
     items: [
       { to: "/system/runs", label: "Logs de Análises" },
       { to: "/system/dlq", label: "Erros de sincro" },
+      { to: "/manual-runs", label: "Runs Manuais" },
     ],
   },
 ];

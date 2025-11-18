@@ -1,5 +1,5 @@
-export function fmtMargin(margin: number | null) {
-  if (!margin) return "—";
-  const m = margin * 100;
-  return `${m.toString()}%`;
+export function fmtMargin(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return "—";
+  value = value * 100;
+  return `${value.toFixed(2)}%`; // ou o que já tens
 }

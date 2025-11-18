@@ -2,36 +2,9 @@ import { Card } from "@/components/ui/card";
 import type { ProductOut } from "@/api/products/types";
 import { fmtDate } from "@/helpers/fmtDate";
 import { fmtMargin } from "@/helpers/fmtNumbers";
+import { StatItem } from "./fields";
 
 type Props = { product?: ProductOut };
-
-function StatItem({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-1 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-center justify-center">
-      <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center">
-        {label}
-      </div>
-      <div
-        className={cx(
-          mono ? "font-mono" : "",
-          "text-sm font-semibold text-foreground"
-        )}
-      >
-        {value || "—"}
-      </div>
-    </div>
-  );
-}
-
-import { cx } from "@/lib/utils";
 
 export default function ProductImageCard({ product: p }: Props) {
   const marginStr = fmtMargin(p?.margin ?? null) ?? "—";
@@ -53,10 +26,15 @@ export default function ProductImageCard({ product: p }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <StatItem label="Criado" value={fmtDate(p?.created_at)} />
-        <StatItem label="Atualizado" value={fmtDate(p?.updated_at)} />
+        <StatItem mono label="Criado" value={fmtDate(p?.created_at)} />
+        <StatItem mono label="Atualizado" value={fmtDate(p?.updated_at)} />
         <StatItem label="Margem" value={marginStr} />
-        <StatItem label="Categoria" value={p?.category_name || "—"} />
+        <StatItem
+          link
+          label="Categoria"
+          value={p?.category_name || "—"}
+          target={`/products?id_category=${p?.id_category}`}
+        />
       </div>
     </Card>
   );
