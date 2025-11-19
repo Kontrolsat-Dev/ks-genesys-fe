@@ -60,6 +60,7 @@ export type ProductOut = {
 export type ProductListItemOut = ProductOut & {
   offers: OfferOut[];
   best_offer: OfferOut | null;
+  active_offer: OfferOut | null;
 };
 
 export type ProductListResponse = {
@@ -123,6 +124,7 @@ export type ProductDetailResponse = {
   // Ofertas atuais (todas) e best_offer calculada via ProductActiveOffer
   offers: OfferOut[];
   best_offer: OfferOut | null;
+  active_offer: OfferOut | null;
 
   stats: ProductStatsOut;
 

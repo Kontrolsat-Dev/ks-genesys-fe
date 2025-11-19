@@ -69,7 +69,15 @@ export default function ProductPage() {
     return null;
   }
 
-  const { product: p, meta, offers, stats, events, best_offer } = data;
+  const {
+    product: p,
+    meta,
+    offers,
+    stats,
+    events,
+    best_offer,
+    active_offer,
+  } = data;
 
   return (
     <div className="space-y-3 ">
@@ -83,7 +91,12 @@ export default function ProductPage() {
       </Card>
 
       <Card className="p-6">
-        <ProductStats stats={stats} bestOffer={best_offer} />
+        <ProductStats
+          stats={stats}
+          bestOffer={best_offer}
+          activeOffer={active_offer}
+          margin={p.margin ?? 0}
+        />
       </Card>
 
       {/* Topo: imagem + info em 2 colunas */}
