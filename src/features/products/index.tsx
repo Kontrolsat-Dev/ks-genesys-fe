@@ -166,6 +166,7 @@ export default function ProductsPage() {
               <h1 className="text-xl font-semibold tracking-tight">Produtos</h1>
               <p className="text-sm text-muted-foreground">
                 Catálogo agregado com ofertas por fornecedor e melhor preço.
+                6901101830067
               </p>
             </div>
 
