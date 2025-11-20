@@ -71,9 +71,10 @@ const NAV_ITEMS: NavGroup[] = [
     name: "Sistema",
     icon: MonitorCog,
     items: [
-      { to: "/system/runs", label: "Logs de Análises" },
-      { to: "/system/dlq", label: "Erros de sincro" },
-      { to: "/manual-runs", label: "Runs Manuais" },
+      { to: "/system/update-stream", label: "Stream de Updates" },
+      // { to: "/system/runs", label: "Logs de Análises" },
+      // { to: "/system/dlq", label: "Erros de sincro" },
+      // { to: "/manual-runs", label: "Runs Manuais" },
     ],
   },
 ];

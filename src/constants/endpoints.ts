@@ -2,18 +2,15 @@
 export const Endpoints = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL,
 
-  // System
-  HEALTHZ: "healthz",
-
-  // Auth
+  //----------- Auth
   AUTH_LOGIN: "auth/login",
   AUTH_ME: "auth/me",
 
-  // Suppliers
+  //-----------  Suppliers
   SUPPLIERS: "suppliers",
   SUPPLIER_BY_ID: (id: number) => `suppliers/${id}`,
 
-  // Feeds
+  //----------- Feeds
   FEED_BY_SUPPLIER: (id: number) => `feeds/supplier/${id}`,
   FEEDS_TEST: "feeds/test",
 
@@ -26,14 +23,19 @@ export const Endpoints = {
   // Runs
   RUNS_INGEST_SUPPLIER: (id: number) => `runs/supplier/${id}/ingest`,
 
+  //----------- Products
+  PRODUCTS: "products",
+  PRODUCT: (id: number) => `products/${id}`,
+  PRODUCT_UPDATE_MARGIN: (id: number) => `products/${id}/margin`,
+
   // Categories
   CATEGORIES: "categories",
 
   // Brands
   BRANDS: "brands",
 
-  // Products
-  PRODUCTS: "products",
-  PRODUCT: (id: number) => `products/${id}`,
-  PRODUCT_UPDATE_MARGIN: (id: number) => `products/${id}/margin`,
+  // ----------- System
+  HEALTHZ: "healthz",
+  CATALOG_UPDATE_STREAM: "catalog/update-stream",
+  CATALOG_UPDATE_STREAM_ERRORS: "catalog/update-stream/errors",
 } as const;

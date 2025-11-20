@@ -12,11 +12,14 @@ import HomePage from "@/features/home";
 import SuppliersPage from "@/features/suppliers";
 import SuppliersCreatePage from "@/features/suppliers/create";
 import SupplierEditPage from "@/features/suppliers/edit";
+// Products
 import ProductsPage from "@/features/products";
 import ProductPage from "@/features/products/product";
 import CategoriesPage from "@/features/products/categories";
 import BrandsPage from "@/features/products/brands";
+// System
 import ManualRunsPage from "@/features/system/manual-runs";
+import UpdateStreamPage from "@/features/system/update-stream";
 
 export const router = createBrowserRouter([
   // público
@@ -51,7 +54,8 @@ export const router = createBrowserRouter([
       // Brands
       { path: "brands", element: <BrandsPage /> },
       // System
-      { path: "/manual-runs", element: <ManualRunsPage /> },
+      { path: "/system/manual-runs", element: <ManualRunsPage /> },
+      { path: "/system/update-stream", element: <UpdateStreamPage /> },
     ],
   },
 
