@@ -3,7 +3,7 @@ import { useQuery, QueryClient } from "@tanstack/react-query";
 import { systemClient } from "@/api/system";
 import type {
   CatalogUpdateStatus,
-  CatalogUpdateStreamErrorsListParams,
+  CatalogUpdateStreamListParams,
   CatalogUpdateStreamListResponse,
 } from "@/api/system";
 
@@ -27,14 +27,15 @@ export function useUpdateStreamList(params: UpdateStreamListParams = {}) {
   const page = params.page ?? 1;
   const pageSize = params.pageSize ?? 20;
 
-  const apiParams: CatalogUpdateStreamErrorsListParams = {
+  const apiParams: CatalogUpdateStreamListParams = {
+    status: status === "all" ? undefined : (status as CatalogUpdateStatus),
     page,
     page_size: pageSize,
   };
 
   return useQuery<CatalogUpdateStreamListResponse>({
     queryKey: updateStreamKeys.list({ status, page, pageSize }),
-    queryFn: () => systemClient.listCatalogUpdateErrors(apiParams),
+    queryFn: () => systemClient.listCatalogUpdates(apiParams),
     // keepPreviousData: true,
     staleTime: 30_000,
     gcTime: 5 * 60_000,

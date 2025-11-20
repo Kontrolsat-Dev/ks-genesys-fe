@@ -17,6 +17,11 @@ export type CatalogUpdateStreamListParams = {
   page?: number;
   page_size?: number;
 };
+export type CatalogUpdateStreamErrorsListParams = {
+  page?: number;
+  page_size?: number;
+};
+
 export type CatalogUpdateStreamPayloadProduct = {
   gtin?: string | null;
   partnumber?: string | null;
