@@ -20,6 +20,7 @@ import BrandsPage from "@/features/products/brands";
 // System
 import ManualRunsPage from "@/features/system/manual-runs";
 import UpdateStreamPage from "@/features/system/update-stream";
+import UpdateStreamErrorPage from "@/features/system/update-stream-errors";
 
 export const router = createBrowserRouter([
   // público
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
       // System
       { path: "/system/manual-runs", element: <ManualRunsPage /> },
       { path: "/system/update-stream", element: <UpdateStreamPage /> },
+      { path: "/system/dlq", element: <UpdateStreamErrorPage /> },
     ],
   },
 

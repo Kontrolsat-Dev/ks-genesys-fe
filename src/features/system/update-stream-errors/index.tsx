@@ -1,6 +1,6 @@
-// src/features/catalog/update-stream/UpdateStreamErrorPage.tsx
+// src/features/system/update-stream-erros/index.tsx
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -12,57 +12,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { HttpClient } from "@/lib/http-client";
-import { Endpoints } from "@/constants/endpoints";
-import { authStore } from "@/lib/auth-store";
 import { fmtDate } from "@/helpers/fmtDate";
-
-type CatalogUpdateStreamItem = {
-  id: number;
-  id_product: number;
-  id_ecommerce: number | null;
-
-  status: "pending" | "processing" | "done" | "failed" | string;
-  event_type: string;
-  priority: number;
-  attempts: number;
-  last_error: string | null;
-
-  created_at: string;
-  processed_at: string | null;
-};
-
-type CatalogUpdateStreamListResponse = {
-  items: CatalogUpdateStreamItem[];
-  total: number;
-  page: number;
-  page_size: number;
-};
-
-const client = new HttpClient({
-  baseUrl: Endpoints.BASE_URL,
-  token: () => authStore.get(),
-});
-
-function useCatalogUpdateErrors(page: number, pageSize: number) {
-  return useQuery<CatalogUpdateStreamListResponse>({
-    queryKey: ["catalog-update-stream", "errors", page, pageSize],
-    queryFn: () =>
-      client.get<CatalogUpdateStreamListResponse>(
-        Endpoints.CATALOG_UPDATE_STREAM_ERRORS,
-        {
-          params: {
-            page,
-            page_size: pageSize,
-          },
-        }
-      ),
-    staleTime: 30_000,
-    gcTime: 5 * 60_000,
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
-}
+import { useCatalogUpdateErrors } from "./queries";
 
 function statusBadgeVariant(
   status: string
@@ -163,38 +114,44 @@ export default function UpdateStreamErrorPage() {
                       <TableCell className="text-xs font-mono text-muted-foreground">
                         #{item.id}
                       </TableCell>
+
                       <TableCell className="text-xs font-mono">
                         {item.id_product ? (
-                          // link para a página de produto
-                          <a
-                            href={`/products/${item.id_product}`}
+                          <Link
+                            to={`/products/${item.id_product}`}
                             className="underline hover:no-underline"
                           >
                             #{item.id_product}
-                          </a>
+                          </Link>
                         ) : (
                           "—"
                         )}
                       </TableCell>
+
                       <TableCell className="text-xs font-mono text-muted-foreground">
                         {item.id_ecommerce ?? "—"}
                       </TableCell>
+
                       <TableCell>
                         <Badge variant={statusBadgeVariant(item.status)}>
                           {item.status.toUpperCase()}
                         </Badge>
                       </TableCell>
+
                       <TableCell>
                         <Badge variant="outline" className="text-xs font-mono">
                           {item.event_type || "product_state_changed"}
                         </Badge>
                       </TableCell>
+
                       <TableCell className="text-xs font-mono text-right">
                         {item.priority}
                       </TableCell>
+
                       <TableCell className="text-xs font-mono text-right">
                         {item.attempts}
                       </TableCell>
+
                       <TableCell className="text-xs max-w-xs">
                         {item.last_error ? (
                           <span title={item.last_error}>{item.last_error}</span>
@@ -204,9 +161,11 @@ export default function UpdateStreamErrorPage() {
                           </span>
                         )}
                       </TableCell>
+
                       <TableCell className="text-xs text-muted-foreground">
                         {fmtDate(item.created_at)}
                       </TableCell>
+
                       <TableCell className="text-xs text-muted-foreground">
                         {item.processed_at ? fmtDate(item.processed_at) : "—"}
                       </TableCell>

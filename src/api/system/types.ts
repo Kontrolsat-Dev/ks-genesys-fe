@@ -11,7 +11,6 @@ export type HealthResponse = {
 // Update List ---------------
 
 export type CatalogUpdateStatus = "pending" | "processing" | "done" | "failed";
-
 export type CatalogUpdateStreamListParams = {
   status?: CatalogUpdateStatus;
   page?: number;

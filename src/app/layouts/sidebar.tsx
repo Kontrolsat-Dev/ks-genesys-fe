@@ -72,8 +72,8 @@ const NAV_ITEMS: NavGroup[] = [
     icon: MonitorCog,
     items: [
       { to: "/system/update-stream", label: "Stream de Updates" },
+      { to: "/system/dlq", label: "Erros de stream" },
       // { to: "/system/runs", label: "Logs de Análises" },
-      // { to: "/system/dlq", label: "Erros de sincro" },
       // { to: "/manual-runs", label: "Runs Manuais" },
     ],
   },

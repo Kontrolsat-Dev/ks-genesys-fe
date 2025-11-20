@@ -18,7 +18,9 @@ import type {
 import { useUpdateStreamList } from "./queries";
 import { fmtPrice } from "@/helpers/fmtPrices";
 
-const STATUS_LABELS: Record<CatalogUpdateStatus | "all", string> = {
+type StatusFilter = CatalogUpdateStatus | "all";
+
+const STATUS_LABELS: Record<StatusFilter, string> = {
   all: "Todos",
   pending: "Pendentes",
   processing: "Em curso",
@@ -89,15 +91,16 @@ function formatChangeSummary(item: CatalogUpdateStreamItem): string {
 }
 
 export default function UpdateStreamPage() {
-  const [status, setStatus] = useState<CatalogUpdateStatus | "all">("pending");
+  const [status, setStatus] = useState<StatusFilter>("pending");
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const page_size = 20;
 
-  const { data, isLoading, isFetching, error } = useUpdateStreamList({
-    status,
-    page,
-    pageSize,
-  });
+  // Se status === "all" não mandamos status para o backend (lista todos)
+  const listParams =
+    status === "all" ? { page, page_size } : { status, page, page_size };
+
+  const { data, isLoading, isFetching, error } =
+    useUpdateStreamList(listParams);
 
   const totalPages = useMemo(() => {
     if (!data || data.total <= 0) return 1;
@@ -107,7 +110,7 @@ export default function UpdateStreamPage() {
   const canPrev = page > 1;
   const canNext = page < totalPages;
 
-  const handleChangeStatus = (next: CatalogUpdateStatus | "all") => {
+  const handleChangeStatus = (next: StatusFilter) => {
     setStatus(next);
     setPage(1);
   };
@@ -127,19 +130,19 @@ export default function UpdateStreamPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {(["all", "pending", "processing", "done", "failed"] as const).map(
-            (s) => (
-              <Button
-                key={s}
-                type="button"
-                size="sm"
-                variant={status === s ? "default" : "outline"}
-                onClick={() => handleChangeStatus(s)}
-              >
-                {STATUS_LABELS[s]}
-              </Button>
-            )
-          )}
+          {(
+            ["all", "pending", "processing", "done", "failed"] as StatusFilter[]
+          ).map((s) => (
+            <Button
+              key={s}
+              type="button"
+              size="sm"
+              variant={status === s ? "default" : "outline"}
+              onClick={() => handleChangeStatus(s)}
+            >
+              {STATUS_LABELS[s]}
+            </Button>
+          ))}
         </div>
       </Card>
 
