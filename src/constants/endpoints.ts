@@ -35,4 +35,5 @@ export const Endpoints = {
   // Products
   PRODUCTS: "products",
   PRODUCT: (id: number) => `products/${id}`,
+  PRODUCT_UPDATE_MARGIN: (id: number) => `products/${id}/margin`,
 } as const;

@@ -1,12 +1,17 @@
+// src/features/products/product/components/ProductImageCard.tsx
 import { Card } from "@/components/ui/card";
-import type { ProductOut } from "@/api/products/types";
+import type { ProductOut, OfferOut } from "@/api/products/types";
 import { fmtDate } from "@/helpers/fmtDate";
 import { fmtMargin } from "@/helpers/fmtNumbers";
 import { StatItem } from "./fields";
+import MarginUpdate from "./margin-update";
 
-type Props = { product?: ProductOut };
+type Props = {
+  product?: ProductOut;
+  offers?: OfferOut[];
+};
 
-export default function ProductImageCard({ product: p }: Props) {
+export default function ProductImageCard({ product: p, offers = [] }: Props) {
   const marginStr = fmtMargin(p?.margin ?? null) ?? "—";
 
   return (
@@ -28,7 +33,19 @@ export default function ProductImageCard({ product: p }: Props) {
       <div className="grid grid-cols-2 gap-2">
         <StatItem mono label="Criado" value={fmtDate(p?.created_at)} />
         <StatItem mono label="Atualizado" value={fmtDate(p?.updated_at)} />
-        <StatItem label="Margem" value={marginStr} />
+
+        {p ? (
+          <MarginUpdate product={p} offers={offers}>
+            <StatItem
+              label="Margem"
+              value={marginStr}
+              className="cursor-pointer h-full"
+            />
+          </MarginUpdate>
+        ) : (
+          <StatItem label="Margem" value={marginStr} />
+        )}
+
         <StatItem
           link
           label="Categoria"

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardAction } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { useProductDetail } from "./queries";
 import type { ProductDetailParams } from "@/api/products/types";
 import {
@@ -102,7 +102,7 @@ export default function ProductPage() {
       {/* Topo: imagem + info em 2 colunas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div>
-          <ProductImageCard product={p} />
+          <ProductImageCard product={p} offers={offers ?? []} />
         </div>
 
         <div className="lg:col-span-2">

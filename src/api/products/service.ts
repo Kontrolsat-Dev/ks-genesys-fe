@@ -7,6 +7,7 @@ import type {
   ProductListResponse,
   ProductDetailParams,
   ProductDetailResponse,
+  ProductMarginUpdate,
 } from "./types";
 
 export class ProductsService {
@@ -68,5 +69,27 @@ export class ProductsService {
         aggregate_daily: params.aggregate_daily ?? true,
       },
     });
+  }
+
+  // Update product margin
+  updateMargin(
+    id: number,
+    payload: ProductMarginUpdate,
+    params: ProductDetailParams = {}
+  ) {
+    return this.http.patch<ProductDetailResponse>(
+      Endpoints.PRODUCT_UPDATE_MARGIN(id),
+      payload,
+      {
+        params: {
+          expand_meta: params.expand_meta ?? true,
+          expand_offers: params.expand_offers ?? true,
+          expand_events: params.expand_events ?? true,
+          events_days: params.events_days ?? 90,
+          events_limit: params.events_limit ?? 2000,
+          aggregate_daily: params.aggregate_daily ?? true,
+        },
+      }
+    );
   }
 }

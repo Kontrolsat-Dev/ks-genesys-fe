@@ -141,3 +141,7 @@ export type ProductDetailParams = {
   events_limit?: number | null;
   aggregate_daily?: boolean;
 };
+
+export type ProductMarginUpdate = {
+  margin: number;
+};

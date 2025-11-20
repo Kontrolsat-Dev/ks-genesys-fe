@@ -7,6 +7,7 @@ type FieldProps = {
   mono?: boolean;
   link?: boolean;
   target?: string;
+  className?: string;
 };
 
 export function InfoField({
@@ -49,14 +50,16 @@ export function StatItem({
   mono = false,
   link = false,
   target = "",
+  className, // <- NOVO
 }: FieldProps) {
   if (link) {
     return (
       <Link
         to={target}
-        className={
-          "cursor-pointer flex flex-col items-center gap-1 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-center justify-center"
-        }
+        className={cx(
+          "cursor-pointer flex flex-col items-center gap-1 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-center justify-center",
+          className
+        )}
       >
         <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center">
           {label}
@@ -75,9 +78,10 @@ export function StatItem({
 
   return (
     <div
-      className={
-        "flex flex-col items-center gap-1 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-center justify-center"
-      }
+      className={cx(
+        "flex flex-col items-center gap-1 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-center justify-center",
+        className // <- só aqui passamos pointer/extra se quisermos
+      )}
     >
       <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center">
         {label}
