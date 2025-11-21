@@ -242,7 +242,7 @@ export default function MarginUpdate({
             <Button
               onClick={handleSave}
               disabled={isSaving || marginDecimal < 0 || !hasChanged}
-              className="px-6 bg-primary hover:bg-primary/90 cursor-pointer text-white"
+              className="px-6 bg-primary hover:bg-primary/90 cursor-pointer text-white dark:text-gray-800"
             >
               {isSaving ? "A guardar..." : "Guardar Margem"}
             </Button>

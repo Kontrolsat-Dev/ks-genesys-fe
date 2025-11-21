@@ -39,13 +39,28 @@ export type SupplierFeedCreate = {
   params?: Record<string, string> | null;
   auth_kind?: string | null;
   auth?: Record<string, any> | null;
-  extra?: Record<string, any> | null;
+  extra?: FeedExtra | null; // << aqui
   csv_delimiter?: string | null;
+};
+
+export type FeedExtra = HttpFeedExtra & FtpFeedExtra;
+
+export type FeedTestRequest = {
+  kind?: string | null;
+  format: string;
+  url: string;
+  headers?: Record<string, string> | null;
+  params?: Record<string, string> | null;
+  auth_kind?: string | null;
+  auth?: Record<string, any> | null;
+  extra?: FeedExtra | null; // << aqui
+  csv_delimiter?: string | null;
+  max_rows?: number | null;
 };
 
 export type SupplierFeedOut = {
   id: number;
-  supplier_id: number;
+  id_supplier: number;
   kind: string;
   format: string;
   url: string;
@@ -61,17 +76,27 @@ export type SupplierFeedOut = {
   updated_at: string | null;
 };
 
-export type FeedTestRequest = {
-  kind?: string | null;
-  format: string;
-  url: string;
-  headers?: Record<string, string> | null;
-  params?: Record<string, string> | null;
-  auth_kind?: string | null;
-  auth?: Record<string, any> | null;
-  extra?: Record<string, any> | null;
-  csv_delimiter?: string | null;
-  max_rows?: number | null;
+export type HttpFeedExtra = {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  body_json?: Record<string, any> | null;
+  pagination?: {
+    mode: "page"; // atualmente só suportas page/size
+    page_field: string;
+    size_field: string;
+    start: number;
+    max_pages: number;
+    stop_on_empty: boolean;
+  };
+};
+
+// Extra para feeds FTP
+export type FtpFeedExtra = {
+  // Globomatik-style: trigger HTTP antes de ler do FTP
+  trigger_http_url?: string;
+  trigger_http_method?: "GET" | "POST";
+  // ZIP por FTP
+  compression?: "none" | "zip";
+  zip_entry_name?: string;
 };
 
 export type FeedTestResponse = {
@@ -86,7 +111,7 @@ export type FeedTestResponse = {
 
 export type FeedMapperOut = {
   id: number;
-  feed_id: number;
+  id_feed: number;
   profile: Record<string, any>;
   version: number;
   created_at: string;

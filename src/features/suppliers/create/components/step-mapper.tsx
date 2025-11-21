@@ -169,7 +169,7 @@ export default function StepMapper({
 }: Props) {
   const feedQ = useSupplierFeed(supplierId);
   const mapperQ = useMapperBySupplier(supplierId);
-  const upsertM = useUpsertMapper(supplierId);
+  const upsertM = useUpsertMapper(feedId);
   const validateM = useValidateMapper(feedId);
   const mapperOpsQ = useMapperOps();
 

@@ -49,10 +49,10 @@ type MapperUpsert = {
   bump_version?: boolean;
 };
 
-export function useUpsertMapper(supplierId: number) {
+export function useUpsertMapper(feedId: number) {
   return useMutation({
     mutationFn: (payload: MapperUpsert) =>
-      suppliersClient.updateSupplierMapper(supplierId, payload),
+      suppliersClient.updateSupplierMapper(feedId, payload),
   });
 }
 

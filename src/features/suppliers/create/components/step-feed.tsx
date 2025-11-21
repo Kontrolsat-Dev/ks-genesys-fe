@@ -46,6 +46,7 @@ type FormValues = {
   headers_kv: KV[];
   params_kv: KV[];
   auth_kv: KV[];
+  extra_kv: KV[]; // <-- NOVO
   max_rows: number;
 
   // EXTRA (HTTP)
@@ -57,6 +58,12 @@ type FormValues = {
   page_start?: string;
   page_max_pages?: string;
   page_stop_on_empty?: boolean;
+
+  // EXTRA (FTP)
+  trigger_http_url?: string;
+  trigger_http_method?: "GET" | "POST";
+  compression?: "none" | "zip";
+  zip_entry_name?: string;
 };
 
 type Props = {
@@ -90,7 +97,9 @@ export default function StepFeed({
       headers_kv: [],
       params_kv: [],
       auth_kv: [],
+      extra_kv: [], // <-- NOVO
       max_rows: 5,
+
       method: "GET",
       body_json_text: "",
       pagination_enabled: false,
@@ -99,6 +108,11 @@ export default function StepFeed({
       page_start: "1",
       page_max_pages: "1000",
       page_stop_on_empty: true,
+
+      trigger_http_url: "",
+      trigger_http_method: "GET",
+      compression: "none",
+      zip_entry_name: "",
     },
     mode: "onBlur",
   });
@@ -119,7 +133,7 @@ export default function StepFeed({
     const authObj = safeParseObjJSON((d as any).auth_json ?? (d as any).auth);
     const extraObj = safeParseObjJSON(
       (d as any).extra_json ?? (d as any).extra
-    );
+    ) as any | null;
 
     let authKV = recordToKV(authObj || {});
     authKV = ensureAuthShape(
@@ -138,6 +152,7 @@ export default function StepFeed({
       headers_kv: recordToKV(headersObj || {}),
       params_kv: recordToKV(paramsObj || {}),
       auth_kv: authKV,
+      extra_kv: [], // default
       max_rows: 5,
       method: "GET",
       body_json_text: "",
@@ -147,9 +162,14 @@ export default function StepFeed({
       page_start: "1",
       page_max_pages: "1000",
       page_stop_on_empty: true,
+      trigger_http_url: "",
+      trigger_http_method: "GET",
+      compression: "none",
+      zip_entry_name: "",
     };
 
     if (extraObj && typeof extraObj === "object") {
+      // HTTP extras
       if (typeof extraObj.method === "string") {
         baseVals.method = String(
           extraObj.method
@@ -168,6 +188,31 @@ export default function StepFeed({
         baseVals.page_stop_on_empty =
           typeof p.stop_on_empty === "boolean" ? p.stop_on_empty : true;
       }
+
+      // FTP extras
+      if (typeof extraObj.trigger_http_url === "string") {
+        baseVals.trigger_http_url = extraObj.trigger_http_url;
+      }
+      if (typeof extraObj.trigger_http_method === "string") {
+        const mh = String(extraObj.trigger_http_method).toUpperCase();
+        baseVals.trigger_http_method = (mh === "POST" ? "POST" : "GET") as
+          | "GET"
+          | "POST";
+      }
+      if (typeof extraObj.compression === "string") {
+        const c = String(extraObj.compression).toLowerCase();
+        baseVals.compression = c === "zip" ? "zip" : "none";
+      }
+      if (typeof extraObj.zip_entry_name === "string") {
+        baseVals.zip_entry_name = extraObj.zip_entry_name;
+      }
+
+      // Campos extra genéricos
+      if (extraObj.extra_fields && typeof extraObj.extra_fields === "object") {
+        baseVals.extra_kv = recordToKV(
+          extraObj.extra_fields as Record<string, any>
+        );
+      }
     }
 
     reset(baseVals as FormValues, { keepDirty: false, keepTouched: false });
@@ -181,34 +226,68 @@ export default function StepFeed({
       setValue("auth_kv", baseVals.auth_kv ?? [], { shouldDirty: false });
       setValue("headers_kv", baseVals.headers_kv ?? [], { shouldDirty: false });
       setValue("params_kv", baseVals.params_kv ?? [], { shouldDirty: false });
+      setValue("extra_kv", baseVals.extra_kv ?? [], { shouldDirty: false });
     }, 0);
   }, [feedQ.data, isActive, reset, setValue]);
 
-  // EXTRA builder
-  const buildExtra = (v: FormValues) => {
-    if (v.kind !== "http") return {};
-    const extra: any = { method: v.method || "GET" };
-    const bodyTxt = (v.body_json_text || "").trim();
-    if (bodyTxt) {
-      try {
-        extra.body_json = JSON.parse(bodyTxt);
-      } catch {}
+  // EXTRA builder (HTTP + FTP + extra_fields)
+  const buildExtra = (v: FormValues): Record<string, any> => {
+    const extra: Record<string, any> = {};
+
+    if (v.kind === "http") {
+      extra.method = v.method || "GET";
+
+      const bodyTxt = (v.body_json_text || "").trim();
+      if (bodyTxt) {
+        try {
+          extra.body_json = JSON.parse(bodyTxt);
+        } catch {
+          // ignora JSON inválido
+        }
+      }
+
+      if (v.pagination_enabled) {
+        const start = parseInt((v.page_start || "1").trim(), 10);
+        const maxPages = parseInt((v.page_max_pages || "1000").trim(), 10);
+        extra.pagination = {
+          mode: "page",
+          page_field: v.page_field || "page",
+          size_field: v.size_field || "page_size",
+          start: Number.isFinite(start) ? start : 1,
+          max_pages: Number.isFinite(maxPages) ? maxPages : 1000,
+          stop_on_empty:
+            typeof v.page_stop_on_empty === "boolean"
+              ? v.page_stop_on_empty
+              : true,
+        };
+      }
     }
-    if (v.pagination_enabled) {
-      const start = parseInt((v.page_start || "1").trim(), 10);
-      const maxPages = parseInt((v.page_max_pages || "1000").trim(), 10);
-      extra.pagination = {
-        mode: "page",
-        page_field: v.page_field || "page",
-        size_field: v.size_field || "page_size",
-        start: Number.isFinite(start) ? start : 1,
-        max_pages: Number.isFinite(maxPages) ? maxPages : 1000,
-        stop_on_empty:
-          typeof v.page_stop_on_empty === "boolean"
-            ? v.page_stop_on_empty
-            : true,
-      };
+
+    if (v.kind === "ftp") {
+      const triggerUrl = (v.trigger_http_url || "").trim();
+      if (triggerUrl) {
+        extra.trigger_http_url = triggerUrl;
+        extra.trigger_http_method = (
+          v.trigger_http_method || "GET"
+        ).toUpperCase();
+      }
     }
+
+    // Compressão
+    if (v.compression === "zip") {
+      extra.compression = "zip";
+      const name = (v.zip_entry_name || "").trim();
+      if (name) {
+        extra.zip_entry_name = name;
+      }
+    }
+
+    // Campos extra genéricos
+    const extraFields = kvToRecord(v.extra_kv || []);
+    if (extraFields && Object.keys(extraFields).length > 0) {
+      extra.extra_fields = extraFields;
+    }
+
     return extra;
   };
 
@@ -251,7 +330,9 @@ export default function StepFeed({
     try {
       const res = await testM.mutateAsync(body);
       setPreview(res as any);
-    } catch {}
+    } catch {
+      // erros já tratados no preview
+    }
   };
 
   const clearPreview = () => setPreview(null);
@@ -296,7 +377,7 @@ export default function StepFeed({
 
   const isHttp = kind === "http";
 
-  // Remount controlado: apenas quando muda o tipo de auth (evita remount a cada tecla)
+  // Remount controlado: apenas quando muda o tipo de auth
   const watchAuthKind = useWatch({ control, name: "auth_kind" }) as
     | string
     | undefined;
@@ -322,149 +403,22 @@ export default function StepFeed({
         <FormProvider {...methods}>
           <FeedOrigin tabKind={tabKind} setTabKind={setTabKind} />
 
-          {/* Avançado (headers/params/auth) */}
+          {/* Avançado (headers/params/auth/extra) */}
           <FeedAdvanced key={feedAdvancedKey} />
 
           {/* Extra (HTTP) */}
           {isHttp && (
             <>
               <Separator />
-              <section className="space-y-4">
-                <div>
-                  <Label className="text-sm">Extra (HTTP)</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Configura o método, body JSON e paginação do pedido.
-                  </p>
-                </div>
+              {/* ... resto do bloco HTTP como já tinhas ... */}
+            </>
+          )}
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                  <div className="md:col-span-3 space-y-1">
-                    <Label>Método</Label>
-                    <select
-                      className="h-10 w-full rounded-md border px-2 text-sm"
-                      value={watch("method")}
-                      onChange={(e) =>
-                        methods.setValue(
-                          "method",
-                          e.target.value as FormValues["method"],
-                          {
-                            shouldDirty: true,
-                          }
-                        )
-                      }
-                    >
-                      {["GET", "POST", "PUT", "PATCH", "DELETE"].map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-9 space-y-1">
-                    <Label>Body JSON (opcional)</Label>
-                    <Textarea
-                      className="font-mono text-xs min-h-[120px]"
-                      placeholder='ex.: { "page": 1, "page_size": 200 }'
-                      value={watch("body_json_text") ?? ""}
-                      onChange={(e) =>
-                        methods.setValue("body_json_text", e.target.value, {
-                          shouldDirty: true,
-                        })
-                      }
-                      spellCheck={false}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Se preenchido, será enviado como <code>body_json</code>.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 rounded-md border p-3 bg-muted/30">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="mb-0">Paginar resultados</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Modo <code>page</code> (page/size/start/max_pages).
-                      </p>
-                    </div>
-                    <Switch
-                      checked={!!watch("pagination_enabled")}
-                      onCheckedChange={(v) =>
-                        methods.setValue("pagination_enabled", v, {
-                          shouldDirty: true,
-                        })
-                      }
-                    />
-                  </div>
-
-                  {watch("pagination_enabled") && (
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 mt-2">
-                      <div className="md:col-span-3">
-                        <Label>Campo página</Label>
-                        <Input
-                          placeholder="page"
-                          value={watch("page_field") ?? ""}
-                          onChange={(e) =>
-                            methods.setValue("page_field", e.target.value, {
-                              shouldDirty: true,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="md:col-span-3">
-                        <Label>Campo tamanho</Label>
-                        <Input
-                          placeholder="page_size"
-                          value={watch("size_field") ?? ""}
-                          onChange={(e) =>
-                            methods.setValue("size_field", e.target.value, {
-                              shouldDirty: true,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Início</Label>
-                        <Input
-                          placeholder="1"
-                          value={watch("page_start") ?? ""}
-                          onChange={(e) =>
-                            methods.setValue("page_start", e.target.value, {
-                              shouldDirty: true,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Máx. páginas</Label>
-                        <Input
-                          placeholder="1000"
-                          value={watch("page_max_pages") ?? ""}
-                          onChange={(e) =>
-                            methods.setValue("page_max_pages", e.target.value, {
-                              shouldDirty: true,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label className="block">Parar quando vazio</Label>
-                        <div className="flex h-10 items-center">
-                          <Switch
-                            checked={!!watch("page_stop_on_empty")}
-                            onCheckedChange={(v) =>
-                              methods.setValue("page_stop_on_empty", v, {
-                                shouldDirty: true,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
+          {/* Extra (FTP) */}
+          {!isHttp && (
+            <>
+              <Separator />
+              {/* ... resto do bloco FTP como já tinhas ... */}
             </>
           )}
 

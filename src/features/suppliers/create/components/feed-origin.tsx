@@ -20,20 +20,21 @@ import {
 
 type Kind = "http" | "ftp";
 
-export default function FeedOrigin({
-  tabKind,
-  setTabKind,
-}: {
+type Props = {
   tabKind: Kind;
   setTabKind: (k: Kind) => void;
-}) {
+};
+
+export default function FeedOrigin({ tabKind, setTabKind }: Props) {
   const form = useFormContext();
   const format = form.watch("format") as "csv" | "json" | "xml" | undefined;
 
   useEffect(() => {
     if (format === "csv") {
       const cur = form.getValues("csv_delimiter");
-      if (!cur) form.setValue("csv_delimiter", ",", { shouldDirty: true });
+      if (!cur) {
+        form.setValue("csv_delimiter", ",", { shouldDirty: true });
+      }
     } else {
       form.setValue("csv_delimiter", null, { shouldDirty: true });
     }
@@ -53,8 +54,9 @@ export default function FeedOrigin({
         <Tabs
           value={tabKind}
           onValueChange={(v) => {
-            setTabKind(v as Kind);
-            form.setValue("kind", v as Kind, { shouldDirty: true });
+            const kind = v as Kind;
+            setTabKind(kind);
+            form.setValue("kind", kind, { shouldDirty: true });
           }}
         >
           <TabsList>

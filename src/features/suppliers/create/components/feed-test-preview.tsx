@@ -37,7 +37,7 @@ export default function FeedTestPreview({
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
         <div className="rounded border p-2">
-          <div className="text-muted-foreground">HTTP</div>
+          <div className="text-muted-foreground">Status</div>
           <div className="font-medium">{preview.status_code}</div>
         </div>
         <div className="rounded border p-2">
