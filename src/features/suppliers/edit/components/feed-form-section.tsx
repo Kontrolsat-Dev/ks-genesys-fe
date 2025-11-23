@@ -39,6 +39,7 @@ type FeedForm = {
   headers_kv: KV[];
   params_kv: KV[];
   auth_kv: KV[];
+  extra_kv: KV[];
 
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body_json_text: string;
@@ -48,6 +49,7 @@ type FeedForm = {
   size_field?: string;
   page_start?: string;
   page_max_pages?: string;
+  concurrency?: string;
   page_stop_on_empty?: boolean;
 };
 
@@ -75,6 +77,8 @@ export default function FeedFormSection({
       headers_kv: [],
       params_kv: [],
       auth_kv: [],
+      extra_kv: [], // 👈 default vazio
+
       method: "GET",
       body_json_text: "",
       pagination_enabled: false,
@@ -82,6 +86,7 @@ export default function FeedFormSection({
       size_field: "page_size",
       page_start: "1",
       page_max_pages: "1000",
+      concurrency: "5",
       page_stop_on_empty: true,
     },
     mode: "onBlur",
@@ -104,6 +109,15 @@ export default function FeedFormSection({
       f.kind as any
     );
 
+    // extra_fields -> extra_kv
+    let extraKV: KV[] = [];
+    if (extraObj && typeof extraObj === "object") {
+      const extraFields = (extraObj as any).extra_fields;
+      if (extraFields && typeof extraFields === "object") {
+        extraKV = recordToKV(extraFields as Record<string, unknown>);
+      }
+    }
+
     const baseVals: Partial<FeedForm> = {
       kind: f.kind as any,
       format: f.format as any,
@@ -114,6 +128,8 @@ export default function FeedFormSection({
       headers_kv: recordToKV(headersObj || {}),
       params_kv: recordToKV(paramsObj || {}),
       auth_kv: authKV,
+      extra_kv: extraKV,
+
       method: "GET",
       body_json_text: "",
       pagination_enabled: false,
@@ -121,9 +137,11 @@ export default function FeedFormSection({
       size_field: "page_size",
       page_start: "1",
       page_max_pages: "1000",
+      concurrency: "1",
       page_stop_on_empty: true,
     };
 
+    // HTTP extras (method/body/pagination) se existirem
     if (extraObj && typeof extraObj === "object") {
       if (typeof (extraObj as any).method === "string") {
         baseVals.method = String(
@@ -150,6 +168,8 @@ export default function FeedFormSection({
         baseVals.size_field = p.size_field ?? "page_size";
         baseVals.page_start = String(p.start ?? "1");
         baseVals.page_max_pages = String(p.max_pages ?? "1000");
+        baseVals.concurrency =
+          p.concurrency != null ? String(p.concurrency) : "1";
         baseVals.page_stop_on_empty =
           typeof p.stop_on_empty === "boolean" ? p.stop_on_empty : true;
       }
@@ -172,6 +192,9 @@ export default function FeedFormSection({
         shouldDirty: false,
       });
       feedForm.setValue("params_kv", baseVals.params_kv ?? [], {
+        shouldDirty: false,
+      });
+      feedForm.setValue("extra_kv", baseVals.extra_kv ?? [], {
         shouldDirty: false,
       });
     }, 0);
@@ -223,30 +246,53 @@ export default function FeedFormSection({
   }) as string | undefined;
   const feedAdvancedKey = `adv-${watchAuthKind ?? "none"}`;
 
+  // --- EXTRA builder alinhado com create (HTTP + extra_fields) ---
   const buildExtra = (v: FeedForm) => {
-    if (v.kind !== "http") return {};
-    const extra: any = { method: v.method || "GET" };
-    const bodyTxt = (v.body_json_text || "").trim();
-    if (bodyTxt) {
-      try {
-        extra.body_json = JSON.parse(bodyTxt);
-      } catch {}
+    const extra: any = {};
+
+    if (v.kind === "http") {
+      extra.method = v.method || "GET";
+
+      const bodyTxt = (v.body_json_text || "").trim();
+      if (bodyTxt) {
+        try {
+          extra.body_json = JSON.parse(bodyTxt);
+        } catch {
+          // body_json inválido → ignora
+        }
+      }
+
+      if (v.pagination_enabled) {
+        const start = parseInt((v.page_start || "1").trim(), 10);
+        const maxPages = parseInt((v.page_max_pages || "1000").trim(), 10);
+
+        const concurrencyRaw = (v.concurrency || "").trim();
+        let concurrencyNum = parseInt(concurrencyRaw || "", 10);
+        if (!Number.isFinite(concurrencyNum) || concurrencyNum <= 0) {
+          concurrencyNum = 5;
+        }
+
+        extra.pagination = {
+          mode: "page",
+          page_field: v.page_field || "page",
+          size_field: v.size_field || "page_size",
+          start: Number.isFinite(start) ? start : 1,
+          max_pages: Number.isFinite(maxPages) ? maxPages : 1000,
+          concurrency: concurrencyNum,
+          stop_on_empty:
+            typeof v.page_stop_on_empty === "boolean"
+              ? v.page_stop_on_empty
+              : true,
+        };
+      }
     }
-    if (v.pagination_enabled) {
-      const start = parseInt((v.page_start || "1").trim(), 10);
-      const maxPages = parseInt((v.page_max_pages || "1000").trim(), 10);
-      extra.pagination = {
-        mode: "page",
-        page_field: v.page_field || "page",
-        size_field: v.size_field || "page_size",
-        start: Number.isFinite(start) ? start : 1,
-        max_pages: Number.isFinite(maxPages) ? maxPages : 1000,
-        stop_on_empty:
-          typeof v.page_stop_on_empty === "boolean"
-            ? v.page_stop_on_empty
-            : true,
-      };
+
+    // extra_fields genérico (para FTP triggers, flags, etc.)
+    const extraFields = kvToRecord(v.extra_kv || []);
+    if (extraFields && Object.keys(extraFields).length > 0) {
+      extra.extra_fields = extraFields;
     }
+
     return extra;
   };
 
@@ -285,48 +331,57 @@ export default function FeedFormSection({
 
       <Separator />
 
-      <section className="space-y-4">
-        {feedForm.watch("kind") === "http" ? (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div className="md:col-span-3 space-y-1">
-              <Label>Método</Label>
-              <select
-                className="h-10 w-full rounded-md border px-2 text-sm"
-                value={feedForm.watch("method")}
-                onChange={(e) =>
-                  feedForm.setValue(
-                    "method",
-                    e.target.value as FeedForm["method"],
-                    {
-                      shouldDirty: true,
-                    }
-                  )
-                }
-              >
-                {["GET", "POST", "PUT", "PATCH", "DELETE"].map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+      <section className="space-y-4 pt-4">
+        {feedForm.watch("kind") === "http" && (
+          <>
+            <div>
+              <Label className="text-sm">Extra (HTTP)</Label>
+              <p className="text-xs text-muted-foreground">
+                Configura o método, body JSON e paginação do pedido.
+              </p>
             </div>
 
-            <div className="md:col-span-9 space-y-1">
-              <Label>Body JSON (opcional)</Label>
-              <Textarea
-                className="font-mono text-xs min-h-[120px]"
-                placeholder='ex.: { "page": 1, "page_size": 200 }'
-                value={feedForm.watch("body_json_text") ?? ""}
-                onChange={(e) =>
-                  feedForm.setValue("body_json_text", e.target.value, {
-                    shouldDirty: true,
-                  })
-                }
-                spellCheck={false}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="md:col-span-3 space-y-1">
+                <Label>Método</Label>
+                <select
+                  className="h-10 w-full rounded-md border px-2 text-sm"
+                  value={feedForm.watch("method")}
+                  onChange={(e) =>
+                    feedForm.setValue(
+                      "method",
+                      e.target.value as FeedForm["method"],
+                      {
+                        shouldDirty: true,
+                      }
+                    )
+                  }
+                >
+                  {["GET", "POST", "PUT", "PATCH", "DELETE"].map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-9 space-y-1">
+                <Label>Body JSON (opcional)</Label>
+                <Textarea
+                  className="font-mono text-xs min-h-[120px]"
+                  placeholder='ex.: { "page": 1, "page_size": 200 }'
+                  value={feedForm.watch("body_json_text") ?? ""}
+                  onChange={(e) =>
+                    feedForm.setValue("body_json_text", e.target.value, {
+                      shouldDirty: true,
+                    })
+                  }
+                  spellCheck={false}
+                />
+              </div>
             </div>
-          </div>
-        ) : null}
+          </>
+        )}
 
         <div className="space-y-2 rounded-md border p-3 bg-muted/30">
           <div className="flex items-center justify-between">
@@ -348,7 +403,7 @@ export default function FeedFormSection({
 
           {feedForm.watch("pagination_enabled") && (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 mt-2">
-              <div className="md:col-span-3">
+              <div className="col-span-3 space-y-2">
                 <Label>Campo página</Label>
                 <Input
                   placeholder="page"
@@ -360,7 +415,7 @@ export default function FeedFormSection({
                   }
                 />
               </div>
-              <div className="md:col-span-3">
+              <div className="col-span-3 space-y-2">
                 <Label>Campo tamanho</Label>
                 <Input
                   placeholder="page_size"
@@ -372,7 +427,7 @@ export default function FeedFormSection({
                   }
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="col-span-2 space-y-2">
                 <Label>Início</Label>
                 <Input
                   placeholder="1"
@@ -384,7 +439,7 @@ export default function FeedFormSection({
                   }
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="col-span-1 space-y-2">
                 <Label>Máx. páginas</Label>
                 <Input
                   placeholder="1000"
@@ -396,7 +451,19 @@ export default function FeedFormSection({
                   }
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="col-span-1 space-y-2">
+                <Label>Concurrencia</Label>
+                <Input
+                  placeholder="1000"
+                  value={feedForm.watch("concurrency") ?? ""}
+                  onChange={(e) =>
+                    feedForm.setValue("concurrency", e.target.value, {
+                      shouldDirty: true,
+                    })
+                  }
+                />
+              </div>
+              <div className="col-span-2 space-y-2">
                 <Label className="block">Parar quando vazio</Label>
                 <div className="flex h-10 items-center">
                   <Switch

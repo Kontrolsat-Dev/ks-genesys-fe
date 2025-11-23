@@ -85,6 +85,7 @@ export type HttpFeedExtra = {
     size_field: string;
     start: number;
     max_pages: number;
+    concurrency: number;
     stop_on_empty: boolean;
   };
 };
