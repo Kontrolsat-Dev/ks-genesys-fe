@@ -1,3 +1,5 @@
+// src/features/suppliers/edit/components/supplier-form-section.tsx
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +17,9 @@ export type SupplierForm = {
   contact_email: string | null;
   margin: number | null;
   country: string | null;
+  ingest_enabled: boolean;
+  ingest_interval_minutes: number | null;
+  ingest_next_run_at: string | null;
 };
 
 type Props = {
@@ -32,8 +37,9 @@ export default function SupplierFormSection({
 }: Props) {
   return (
     <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      {/* --- Dados básicos --- */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div className="md:col-span-6 space-y-1">
+        <div className="md:col-span-6 space-y-2">
           <Label>Nome</Label>
           <Input
             placeholder="Nome do fornecedor"
@@ -42,7 +48,7 @@ export default function SupplierFormSection({
           />
         </div>
 
-        <div className="md:col-span-3 space-y-1">
+        <div className="md:col-span-3 space-y-2">
           <Label>País</Label>
           <Input
             placeholder="PT"
@@ -51,7 +57,7 @@ export default function SupplierFormSection({
           />
         </div>
 
-        <div className="md:col-span-3 space-y-1">
+        <div className="md:col-span-3 space-y-2">
           <Label className="block">Ativo</Label>
           <div className="h-10 flex items-center">
             <Switch
@@ -64,7 +70,7 @@ export default function SupplierFormSection({
           </div>
         </div>
 
-        <div className="md:col-span-6 space-y-1">
+        <div className="md:col-span-6 space-y-2">
           <Label>Logo (URL)</Label>
           <Input
             placeholder="https://…"
@@ -78,7 +84,7 @@ export default function SupplierFormSection({
           />
         </div>
 
-        <div className="md:col-span-3 space-y-1">
+        <div className="md:col-span-3 space-y-2">
           <Label>Margem (%)</Label>
           <Input
             type="number"
@@ -99,8 +105,57 @@ export default function SupplierFormSection({
 
       <Separator />
 
+      {/* --- Agendamento de ingest --- */}
+      <section className="grid grid-cols-12 gap-4">
+        <div className="col-span-5 space-y-2">
+          <Label>Intervalo de atualizações (min)</Label>
+          <Input
+            type="number"
+            placeholder="60"
+            // importante: garantir número, não string
+            {...form.register("ingest_interval_minutes", {
+              required: true,
+              valueAsNumber: true,
+            })}
+            disabled={!!isBusy}
+          />
+        </div>
+
+        <div className="col-span-5 space-y-2">
+          <Label>Próxima execução</Label>
+          <Input
+            placeholder="Gerido automaticamente pelo sistema"
+            {...form.register("ingest_next_run_at")}
+            disabled={!!isBusy}
+          />
+          {/* Se quiseres deixar totalmente read-only, troca por:
+          <Input
+            placeholder="Gerido automaticamente pelo sistema"
+            value={form.watch("ingest_next_run_at") ?? ""}
+            disabled
+          />
+          */}
+        </div>
+
+        <div className="col-span-2 space-y-2">
+          <Label className="block">Atualização de feed</Label>
+          <div className="h-10 flex items-center">
+            <Switch
+              checked={!!form.watch("ingest_enabled")}
+              onCheckedChange={(v) =>
+                form.setValue("ingest_enabled", v, { shouldDirty: true })
+              }
+              disabled={!!isBusy}
+            />
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      {/* --- Contactos --- */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div className="md:col-span-4 space-y-1">
+        <div className="md:col-span-4 space-y-2">
           <Label>Contacto (nome)</Label>
           <Input
             placeholder="Nome do contacto"
@@ -113,7 +168,7 @@ export default function SupplierFormSection({
             disabled={!!isBusy}
           />
         </div>
-        <div className="md:col-span-4 space-y-1">
+        <div className="md:col-span-4 space-y-2">
           <Label>Contacto (telefone)</Label>
           <Input
             placeholder="+351…"
@@ -126,7 +181,7 @@ export default function SupplierFormSection({
             disabled={!!isBusy}
           />
         </div>
-        <div className="md:col-span-4 space-y-1">
+        <div className="md:col-span-4 space-y-2">
           <Label>Contacto (email)</Label>
           <Input
             type="email"

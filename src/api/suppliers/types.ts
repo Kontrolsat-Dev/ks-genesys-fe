@@ -7,6 +7,9 @@ export type SupplierCreate = {
   contact_email?: string | null;
   margin?: number;
   country?: string | null;
+  ingest_enabled?: boolean;
+  ingest_interval_minutes?: number | null;
+  ingest_next_run_at?: string | null;
 };
 
 export type Supplier = {
@@ -19,6 +22,11 @@ export type Supplier = {
   contact_email?: string | null;
   margin: number;
   country?: string | null;
+
+  ingest_enabled?: boolean;
+  ingest_interval_minutes?: number | null;
+  ingest_next_run_at?: string | null;
+
   created_at: string;
   updated_at: string | null;
 };

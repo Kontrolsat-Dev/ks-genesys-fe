@@ -40,6 +40,9 @@ export default function SupplierEditPage() {
       contact_email: null,
       margin: null,
       country: null,
+      ingest_enabled: true,
+      ingest_interval_minutes: 61,
+      ingest_next_run_at: null,
     },
     mode: "onBlur",
   });
@@ -58,6 +61,9 @@ export default function SupplierEditPage() {
         contact_email: s.contact_email ?? null,
         margin: typeof s.margin === "number" ? s.margin : null,
         country: s.country ?? null,
+        ingest_enabled: !!s.ingest_enabled,
+        ingest_interval_minutes: s.ingest_interval_minutes ?? null,
+        ingest_next_run_at: s.ingest_next_run_at ?? null,
       },
       { keepDirty: false, keepTouched: false }
     );
@@ -78,6 +84,9 @@ export default function SupplierEditPage() {
       contact_email: emptyToNull(vals.contact_email),
       margin: vals.margin ?? 0,
       country: emptyToNull(vals.country),
+      ingest_enabled: vals.ingest_enabled,
+      ingest_interval_minutes: vals.ingest_interval_minutes,
+      ingest_next_run_at: emptyToNull(vals.ingest_next_run_at),
     });
   };
 
