@@ -1,5 +1,6 @@
+
 ```
-Frontend
+frontend
 ├─ .env
 ├─ .env.example
 ├─ components.json
@@ -8,11 +9,24 @@ Frontend
 ├─ package-lock.json
 ├─ package.json
 ├─ public
+│  ├─ favicon.png
 │  └─ logo.png
 ├─ README.md
 ├─ src
 │  ├─ api
 │  │  ├─ auth
+│  │  │  ├─ index.ts
+│  │  │  ├─ service.ts
+│  │  │  └─ types.ts
+│  │  ├─ brands
+│  │  │  ├─ index.ts
+│  │  │  ├─ service.ts
+│  │  │  └─ types.ts
+│  │  ├─ categories
+│  │  │  ├─ index.ts
+│  │  │  ├─ service.ts
+│  │  │  └─ types.ts
+│  │  ├─ products
 │  │  │  ├─ index.ts
 │  │  │  ├─ service.ts
 │  │  │  └─ types.ts
@@ -40,7 +54,8 @@ Frontend
 │  │  ├─ feedback
 │  │  │  └─ status-dot.tsx
 │  │  ├─ genesys-ui
-│  │  │  └─ hightlight.tsx
+│  │  │  ├─ expandable-text.tsx
+│  │  │  └─ Hightlight.tsx
 │  │  └─ ui
 │  │     ├─ alert-dialog.tsx
 │  │     ├─ avatar.tsx
@@ -48,6 +63,7 @@ Frontend
 │  │     ├─ button.tsx
 │  │     ├─ card.tsx
 │  │     ├─ checkbox.tsx
+│  │     ├─ dialog.tsx
 │  │     ├─ dropdown-menu.tsx
 │  │     ├─ form.tsx
 │  │     ├─ input.tsx
@@ -56,6 +72,7 @@ Frontend
 │  │     ├─ select.tsx
 │  │     ├─ separator.tsx
 │  │     ├─ skeleton.tsx
+│  │     ├─ slider.tsx
 │  │     ├─ sonner.tsx
 │  │     ├─ switch.tsx
 │  │     ├─ table.tsx
@@ -63,6 +80,7 @@ Frontend
 │  │     ├─ textarea.tsx
 │  │     └─ tooltip.tsx
 │  ├─ constants
+│  │  ├─ colors.ts
 │  │  └─ endpoints.ts
 │  ├─ features
 │  │  ├─ auth
@@ -71,6 +89,38 @@ Frontend
 │  │  │     └─ queries.ts
 │  │  ├─ home
 │  │  │  └─ index.tsx
+│  │  ├─ products
+│  │  │  ├─ brands
+│  │  │  │  ├─ index.tsx
+│  │  │  │  └─ queries.ts
+│  │  │  ├─ categories
+│  │  │  │  ├─ index.tsx
+│  │  │  │  └─ queries.ts
+│  │  │  ├─ components
+│  │  │  │  ├─ index.ts
+│  │  │  │  ├─ offers-inline.tsx
+│  │  │  │  ├─ status-dot.tsx
+│  │  │  │  ├─ table-empty.tsx
+│  │  │  │  └─ table-skeleton.tsx
+│  │  │  ├─ index.tsx
+│  │  │  ├─ product
+│  │  │  │  ├─ components
+│  │  │  │  │  ├─ fields.tsx
+│  │  │  │  │  ├─ index.ts
+│  │  │  │  │  ├─ margin-update.tsx
+│  │  │  │  │  ├─ product-header.tsx
+│  │  │  │  │  ├─ product-image-card.tsx
+│  │  │  │  │  ├─ product-info.tsx
+│  │  │  │  │  ├─ product-loading-page.tsx
+│  │  │  │  │  ├─ product-meta-table.tsx
+│  │  │  │  │  ├─ product-offers-table.tsx
+│  │  │  │  │  ├─ product-price-chart.tsx
+│  │  │  │  │  ├─ product-stats.tsx
+│  │  │  │  │  ├─ product-stock-chart.tsx
+│  │  │  │  │  └─ stat.tsx
+│  │  │  │  ├─ index.tsx
+│  │  │  │  └─ queries.ts
+│  │  │  └─ queries.ts
 │  │  ├─ suppliers
 │  │  │  ├─ components
 │  │  │  │  ├─ page-header.tsx
@@ -102,13 +152,31 @@ Frontend
 │  │  │  │  ├─ queries.ts
 │  │  │  │  └─ utils.ts
 │  │  │  ├─ edit
-│  │  │  │  ├─ queries.ts
-│  │  │  │  └─ index.tsx
+│  │  │  │  ├─ components
+│  │  │  │  │  ├─ feed-form-section.tsx
+│  │  │  │  │  ├─ mapper-editor.tsx
+│  │  │  │  │  ├─ supplier-form-section.tsx
+│  │  │  │  │  └─ supplier-header.tsx
+│  │  │  │  ├─ index.tsx
+│  │  │  │  └─ queries.ts
 │  │  │  ├─ index.tsx
 │  │  │  └─ queries.ts
 │  │  └─ system
-│  │     └─ healthz
+│  │     ├─ healthz
+│  │     │  └─ queries.ts
+│  │     ├─ manual-runs
+│  │     │  └─ index.tsx
+│  │     ├─ update-stream
+│  │     │  ├─ index.tsx
+│  │     │  └─ queries.ts
+│  │     └─ update-stream-errors
+│  │        ├─ index.tsx
 │  │        └─ queries.ts
+│  ├─ helpers
+│  │  ├─ fmtDate.ts
+│  │  ├─ fmtNumbers.ts
+│  │  ├─ fmtPrices.ts
+│  │  └─ html.ts
 │  ├─ index.css
 │  ├─ lib
 │  │  ├─ auth-hooks.ts
@@ -116,11 +184,14 @@ Frontend
 │  │  ├─ formatters.ts
 │  │  ├─ http-client.ts
 │  │  ├─ http.ts
+│  │  ├─ product-search.ts
 │  │  ├─ query-client.ts
 │  │  └─ utils.ts
 │  ├─ main.tsx
 │  └─ providers
 │     └─ theme-provider.tsx
+├─ src.zip
+├─ TODO.md
 ├─ tsconfig.app.json
 ├─ tsconfig.json
 ├─ tsconfig.node.json

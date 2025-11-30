@@ -18,11 +18,12 @@ export class CategoriesService {
 
   list(params: CategoriesListParams = {}) {
     const { page = 1, pageSize = 20, q = null } = params;
+
     return this.http.get<CategoriesListResponse>(Endpoints.CATEGORIES, {
       params: {
         page,
         page_size: pageSize,
-        search: q,
+        q,
       },
     });
   }

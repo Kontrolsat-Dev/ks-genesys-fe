@@ -18,12 +18,12 @@ export class BrandsService {
 
   list(params: BrandsListParams = {}) {
     const { page = 1, pageSize = 20, q = null } = params;
-    // ⚠️ Alinhado com OpenAPI: search + page_size
+
     return this.http.get<BrandsListResponse>(Endpoints.BRANDS, {
       params: {
         page,
         page_size: pageSize,
-        search: q,
+        q,
       },
     });
   }

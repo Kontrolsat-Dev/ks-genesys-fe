@@ -96,7 +96,7 @@ export default function CategoriesPage() {
                 <Search className="h-4 w-4 text-slate-400 pointer-events-none" />
               </span>
               <Input
-                placeholder="Pesquisar marca…"
+                placeholder="Pesquisar categoria..."
                 value={qInput}
                 onChange={(e) => setQInput(e.target.value)}
                 className="pl-8"
@@ -139,7 +139,7 @@ export default function CategoriesPage() {
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <TableRow className="[&_th]:text-muted-foreground">
-                <TableHead className="w-[80%]">Marca</TableHead>
+                <TableHead className="w-[80%]">Categorias</TableHead>
                 <TableHead className="w-[20%] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>

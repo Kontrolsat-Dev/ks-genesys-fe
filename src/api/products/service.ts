@@ -37,6 +37,7 @@ export class ProductsService {
       has_stock = null,
       id_supplier = null,
       sort = "recent",
+      imported = null, // <-- NOVO
     } = params;
 
     return this.http.get<ProductListResponse>(Endpoints.PRODUCTS, {
@@ -53,6 +54,7 @@ export class ProductsService {
         has_stock,
         id_supplier,
         sort,
+        imported, // <-- NOVO
       },
     });
   }

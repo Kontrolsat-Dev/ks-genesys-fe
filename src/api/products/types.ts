@@ -15,6 +15,7 @@ export type ProductListParams = {
   has_stock?: boolean | null;
   id_supplier?: number | null;
   sort?: "recent" | "name" | "cheapest";
+  imported?: boolean | null;
 };
 
 export type OfferOut = {

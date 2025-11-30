@@ -1,6 +1,13 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+// src/features/products/queries.ts
+import {
+  keepPreviousData,
+  useQuery,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { productsClient } from "@/api/products";
 import type { ProductListParams, ProductListResponse } from "@/api/products";
+import { useBrandsList } from "@/features/products/brands/queries";
+import { useCategoriesList } from "@/features/products/categories/queries";
 
 export const productKeys = {
   root: ["products"] as const,
@@ -22,6 +29,7 @@ export function useProductsList(params: ProductListParams = {}) {
     category: params.category ?? null,
     has_stock: params.has_stock ?? null,
     id_supplier: params.id_supplier ?? null,
+    imported: params.imported ?? null,
   };
 
   return useQuery<ProductListResponse & { elapsedMs: number }>({
@@ -37,3 +45,5 @@ export function useProductsList(params: ProductListParams = {}) {
     staleTime: 55_000,
   });
 }
+
+export type FilterOption = { value: string; label: string };
