@@ -11,7 +11,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -20,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Search, ExternalLink } from "lucide-react";
+import { Loader2, Search, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import Highlight from "@/components/genesys-ui/hightlight";
 import { useCategoriesList } from "./queries";
 import { TableEmpty, TableSkeleton } from "@/features/products/components";
@@ -122,15 +121,7 @@ export default function CategoriesPage() {
           </div>
         </div>
 
-        <div className="mt-0 text-xs text-muted-foreground">
-          {data
-            ? `${data.total} resultados` +
-              (typeof elapsedMs === "number"
-                ? ` • ${Math.round(elapsedMs)} ms`
-                : "") +
-              (isFetching ? " • a atualizar…" : "")
-            : "—"}
-        </div>
+
       </Card>
 
       {/* Tabela */}
@@ -179,30 +170,75 @@ export default function CategoriesPage() {
           </Table>
         </div>
 
-        {/* Paginação */}
-        <Separator />
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="text-xs text-muted-foreground">
-            Página {data?.page ?? page} de {totalPages}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={(data?.page ?? page) <= 1 || isFetching}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p + 1))}
-              disabled={(data?.page ?? page) >= totalPages || isFetching}
-            >
-              Seguinte
-            </Button>
-            {isFetching && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+        {/* Paginação - Vercel-like design */}
+        <div className="border-t bg-muted/30">
+          <div className="flex items-center justify-between px-6 py-3">
+            {/* Left: Results info */}
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span>
+                {data?.total && data.total > 0 ? (
+                  <>
+                    <span className="font-medium text-foreground">
+                      {data.total.toLocaleString()}
+                    </span>{" "}
+                    {data.total === 1 ? "resultado" : "resultados"}
+                  </>
+                ) : (
+                  "Nenhum resultado"
+                )}
+              </span>
+              {typeof elapsedMs === "number" && (
+                <>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span>{Math.round(elapsedMs)} ms</span>
+                </>
+              )}
+              {isFetching && (
+                <>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    a atualizar
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Right: Pagination controls */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">
+                Página{" "}
+                <span className="font-medium text-foreground">
+                  {data?.page ?? page}
+                </span>{" "}
+                de{" "}
+                <span className="font-medium text-foreground">
+                  {totalPages}
+                </span>
+              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={(data?.page ?? page) <= 1 || isFetching}
+                  className="h-8 px-2.5 gap-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Anterior</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p + 1))}
+                  disabled={(data?.page ?? page) >= totalPages || isFetching}
+                  className="h-8 px-2.5 gap-1"
+                >
+                  <span className="hidden sm:inline">Seguinte</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </Card>

@@ -1,10 +1,6 @@
 // src/features/products/index.tsx
 import { useMemo } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Loader2 } from "lucide-react";
 
 import { useProductsList } from "./queries";
 import { useAllCategories } from "./categories/queries";
@@ -75,54 +71,22 @@ export default function ProductsPage() {
           isLoadingCategories={isLoadingCategories}
         />
 
-        {/* info de resultados */}
-        <div className="mt-[-0.75rem] px-1 text-xs text-muted-foreground">
-          {data
-            ? `${data.total} resultados` +
-              (typeof elapsedMs === "number"
-                ? ` • ${Math.round(elapsedMs)} ms`
-                : "") +
-              (isFetching ? " • a atualizar…" : "")
-            : "—"}
-        </div>
-
-        {/* Tabela */}
+        {/* Tabela com paginação integrada */}
         <ProductsTable
           items={items}
           qParam={searchState.qParam}
           isLoading={isLoading}
-        />
+          // Pagination props
+          currentPage={data?.page ?? searchState.page}
+          totalPages={totalPages}
+          totalResults={data?.total ?? 0}
+          elapsedMs={elapsedMs}
+          isFetching={isFetching}
+          onPrevPage={goPrev}
+          onNextPage={goNext}
+        />\
 
-        {/* Paginação */}
-        <Card className="mt-0">
-          <Separator />
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="text-xs text-muted-foreground">
-              Página {data?.page ?? searchState.page} de {totalPages}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goPrev}
-                disabled={(data?.page ?? searchState.page) <= 1 || isFetching}
-              >
-                Anterior
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goNext}
-                disabled={
-                  (data?.page ?? searchState.page) >= totalPages || isFetching
-                }
-              >
-                Seguinte
-              </Button>
-              {isFetching && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-            </div>
-          </div>
-        </Card>
+
       </div>
     </TooltipProvider>
   );

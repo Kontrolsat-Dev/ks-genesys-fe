@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { systemClient } from "@/api/system";
+import { catalogUpdateStreamClient } from "@/api/catalog-update-stream";
 import type {
   CatalogUpdateStreamListResponse,
   CatalogUpdateStreamErrorsListParams,
-} from "@/api/system/types";
+} from "@/api/catalog-update-stream";
 
 export const catalogUpdateStreamKeys = {
   root: ["system", "catalog-update-stream"] as const,
@@ -19,7 +19,7 @@ export function useCatalogUpdateErrors(
 
   return useQuery<CatalogUpdateStreamListResponse>({
     queryKey: catalogUpdateStreamKeys.errors(page, pageSize),
-    queryFn: () => systemClient.listCatalogUpdateErrors(page, pageSize),
+    queryFn: () => catalogUpdateStreamClient.listCatalogUpdateErrors(page, pageSize),
     staleTime: 30_000,
     gcTime: 5 * 60_000,
     retry: 1,

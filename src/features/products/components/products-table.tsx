@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Highlight from "@/components/genesys-ui/hightlight";
 import { cn } from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { fmtPrice } from "@/helpers/fmtPrices";
 import type { ProductExt } from "@/api/products";
@@ -30,13 +30,30 @@ type ProductsTableProps = {
   items: ProductExt[];
   qParam: string | null;
   isLoading: boolean;
+  // Pagination props
+  currentPage?: number;
+  totalPages?: number;
+  totalResults?: number;
+  elapsedMs?: number;
+  isFetching?: boolean;
+  onPrevPage?: () => void;
+  onNextPage?: () => void;
 };
 
 export default function ProductsTable({
   items,
   qParam,
   isLoading,
+  currentPage = 1,
+  totalPages = 1,
+  totalResults = 0,
+  elapsedMs,
+  isFetching = false,
+  onPrevPage,
+  onNextPage,
 }: ProductsTableProps) {
+  const hasPagination = onPrevPage && onNextPage;
+
   return (
     <Card className="overflow-hidden p-0">
       <div className="min-w-full overflow-x-auto">
@@ -196,6 +213,80 @@ export default function ProductsTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Footer - Vercel-like design */}
+      {hasPagination && (
+        <div className="border-t bg-muted/30">
+          <div className="flex items-center justify-between px-6 py-3">
+            {/* Left: Results info */}
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span>
+                {totalResults > 0 ? (
+                  <>
+                    <span className="font-medium text-foreground">
+                      {totalResults.toLocaleString()}
+                    </span>{" "}
+                    {totalResults === 1 ? "resultado" : "resultados"}
+                  </>
+                ) : (
+                  "Nenhum resultado"
+                )}
+              </span>
+              {typeof elapsedMs === "number" && (
+                <>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span>{Math.round(elapsedMs)} ms</span>
+                </>
+              )}
+              {isFetching && (
+                <>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    a atualizar
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Right: Pagination controls */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">
+                Página{" "}
+                <span className="font-medium text-foreground">
+                  {currentPage}
+                </span>{" "}
+                de{" "}
+                <span className="font-medium text-foreground">
+                  {totalPages}
+                </span>
+              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onPrevPage}
+                  disabled={currentPage <= 1 || isFetching}
+                  className="h-8 px-2.5 gap-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Anterior</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onNextPage}
+                  disabled={currentPage >= totalPages || isFetching}
+                  className="h-8 px-2.5 gap-1"
+                >
+                  <span className="hidden sm:inline">Seguinte</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

@@ -158,171 +158,178 @@ export default function ProductsFiltersBar({
         </div>
       </div>
 
-      {/* Painel de pesquisa avançada */}
-      {showAdvanced && (
-        <div className="space-y-3 rounded-md border bg-muted/40 p-3">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Filtros avançados do catálogo</span>
+      {/* Painel de pesquisa avançada - Com animação */}
+      <div
+        className="grid transition-all duration-300 ease-in-out"
+        style={{
+          gridTemplateRows: showAdvanced ? "1fr" : "0fr",
+        }}
+      >
+        <div className="overflow-hidden">
+          <div className="space-y-3 rounded-md border bg-muted/40 p-3 mt-3">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Filtros avançados do catálogo</span>
 
-            {hasAnyAdvancedFilter && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs"
-                onClick={handleClearAdvanced}
-              >
-                <XCircle className="h-3 w-3" />
-                <span>Limpar filtros</span>
-              </Button>
-            )}
-          </div>
-
-          {/* Linha 1: Marca + Categoria */}
-          <div className="grid gap-3 md:grid-cols-2">
-            <AdvancedFilterField label="Marca (opcional)">
-              <div className="relative">
-                <Select
-                  value={id_brand ? String(id_brand) : "all"}
-                  onValueChange={onChangeBrand}
+              {hasAnyAdvancedFilter && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs h-auto"
+                  onClick={handleClearAdvanced}
                 >
-                  <SelectTrigger className="w-full pr-7">
-                    <SelectValue placeholder="Selecionar marca" />
+                  <XCircle className="h-3 w-3" />
+                  <span>Limpar filtros</span>
+                </Button>
+              )}
+            </div>
+
+            {/* Linha 1: Marca + Categoria */}
+            <div className="grid gap-3 md:grid-cols-2">
+              <AdvancedFilterField label="Marca (opcional)">
+                <div className="relative">
+                  <Select
+                    value={id_brand ? String(id_brand) : "all"}
+                    onValueChange={onChangeBrand}
+                  >
+                    <SelectTrigger className="w-full pr-7">
+                      <SelectValue placeholder="Selecionar marca" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {isLoadingBrands
+                          ? "A carregar marcas…"
+                          : "Todas as marcas"}
+                      </SelectItem>
+                      {brands.map((b) => (
+                        <SelectItem key={b.id} value={b.id.toString()}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {id_brand && (
+                    <button
+                      type="button"
+                      onClick={handleClearBrand}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+                      aria-label="Limpar marca"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </AdvancedFilterField>
+
+              <AdvancedFilterField label="Categoria (opcional)">
+                <div className="relative">
+                  <Select
+                    value={id_category ? String(id_category) : "all"}
+                    onValueChange={onChangeCategory}
+                  >
+                    <SelectTrigger className="w-full pr-7">
+                      <SelectValue placeholder="Selecionar categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {isLoadingCategories
+                          ? "A carregar categorias…"
+                          : "Todas as categorias"}
+                      </SelectItem>
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={c.id.toString()}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {id_category && (
+                    <button
+                      type="button"
+                      onClick={handleClearCategory}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+                      aria-label="Limpar categoria"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </AdvancedFilterField>
+            </div>
+
+            {/* Linha 2: Stock + Importação + Ordenação + Tamanho página */}
+            <div className="grid gap-3 md:grid-cols-4">
+              <AdvancedFilterField label="Stock">
+                <Select
+                  value={hasStockUI}
+                  onValueChange={(v) => onChangeHasStock(v as any)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filtrar por stock" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">
-                      {isLoadingBrands
-                        ? "A carregar marcas…"
-                        : "Todas as marcas"}
-                    </SelectItem>
-                    {brands.map((b) => (
-                      <SelectItem key={b.id} value={b.id.toString()}>
-                        {b.name}
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="in">Com stock</SelectItem>
+                    <SelectItem value="out">Sem stock</SelectItem>
+                  </SelectContent>
+                </Select>
+              </AdvancedFilterField>
+
+              <AdvancedFilterField label="Estado de importação">
+                <Select
+                  value={importedUI}
+                  onValueChange={(v) => onChangeImported(v as any)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filtrar por importação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="imported">Importados</SelectItem>
+                    <SelectItem value="not_imported">Por importar</SelectItem>
+                  </SelectContent>
+                </Select>
+              </AdvancedFilterField>
+
+              <AdvancedFilterField label="Ordenar por">
+                <Select
+                  value={sort}
+                  onValueChange={(v) => onChangeSort(v as any)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Ordenar resultados" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Recentes</SelectItem>
+                    <SelectItem value="name">Nome</SelectItem>
+                    <SelectItem value="cheapest">Preço</SelectItem>
+                  </SelectContent>
+                </Select>
+              </AdvancedFilterField>
+
+              <AdvancedFilterField label="Resultados por página">
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={(v) => onChangePageSize(Number(v))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Qtde/página" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[10, 20, 50, 100].map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n} / página
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-
-                {id_brand && (
-                  <button
-                    type="button"
-                    onClick={handleClearBrand}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
-                    aria-label="Limpar marca"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            </AdvancedFilterField>
-
-            <AdvancedFilterField label="Categoria (opcional)">
-              <div className="relative">
-                <Select
-                  value={id_category ? String(id_category) : "all"}
-                  onValueChange={onChangeCategory}
-                >
-                  <SelectTrigger className="w-full pr-7">
-                    <SelectValue placeholder="Selecionar categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      {isLoadingCategories
-                        ? "A carregar categorias…"
-                        : "Todas as categorias"}
-                    </SelectItem>
-                    {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id.toString()}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {id_category && (
-                  <button
-                    type="button"
-                    onClick={handleClearCategory}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
-                    aria-label="Limpar categoria"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            </AdvancedFilterField>
-          </div>
-
-          {/* Linha 2: Stock + Importação + Ordenação + Tamanho página */}
-          <div className="grid gap-3 md:grid-cols-4">
-            <AdvancedFilterField label="Stock">
-              <Select
-                value={hasStockUI}
-                onValueChange={(v) => onChangeHasStock(v as any)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filtrar por stock" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="in">Com stock</SelectItem>
-                  <SelectItem value="out">Sem stock</SelectItem>
-                </SelectContent>
-              </Select>
-            </AdvancedFilterField>
-
-            <AdvancedFilterField label="Estado de importação">
-              <Select
-                value={importedUI}
-                onValueChange={(v) => onChangeImported(v as any)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filtrar por importação" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="imported">Importados</SelectItem>
-                  <SelectItem value="not_imported">Por importar</SelectItem>
-                </SelectContent>
-              </Select>
-            </AdvancedFilterField>
-
-            <AdvancedFilterField label="Ordenar por">
-              <Select
-                value={sort}
-                onValueChange={(v) => onChangeSort(v as any)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Ordenar resultados" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Recentes</SelectItem>
-                  <SelectItem value="name">Nome</SelectItem>
-                  <SelectItem value="cheapest">Preço</SelectItem>
-                </SelectContent>
-              </Select>
-            </AdvancedFilterField>
-
-            <AdvancedFilterField label="Resultados por página">
-              <Select
-                value={String(pageSize)}
-                onValueChange={(v) => onChangePageSize(Number(v))}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Qtde/página" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[10, 20, 50, 100].map((n) => (
-                    <SelectItem key={n} value={String(n)}>
-                      {n} / página
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </AdvancedFilterField>
+              </AdvancedFilterField>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </Card>
   );
 }

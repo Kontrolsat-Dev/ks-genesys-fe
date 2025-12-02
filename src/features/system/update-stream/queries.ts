@@ -1,11 +1,11 @@
 // src/features/system/update-stream/queries.ts
 import { useQuery } from "@tanstack/react-query";
-import { systemClient } from "@/api/system";
+import { catalogUpdateStreamClient } from "@/api/catalog-update-stream";
 import type {
   CatalogUpdateStreamListResponse,
   CatalogUpdateStreamListParams,
   CatalogUpdateStatus,
-} from "@/api/system/types";
+} from "@/api/catalog-update-stream";
 
 export const catalogUpdateStreamKeys = {
   root: ["system", "catalog-update-stream"] as const,
@@ -23,7 +23,7 @@ export function useUpdateStreamList(
   return useQuery<CatalogUpdateStreamListResponse>({
     queryKey: catalogUpdateStreamKeys.list(status, page, pageSize),
     queryFn: () =>
-      systemClient.listCatalogUpdates({
+        catalogUpdateStreamClient.listCatalogUpdates({
         status: params.status,
         page,
         page_size: pageSize,
