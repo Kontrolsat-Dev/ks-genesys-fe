@@ -1,10 +1,10 @@
 // src/api/system/services.ts
 import {HttpClient} from "@/lib/http-client";
 import {Endpoints} from "@/constants/endpoints";
+import {authStore} from "@/lib/auth-store";
 import type {
     HealthResponse
 } from "./types";
-import {authStore} from "@/lib/auth-store";
 
 export class SystemService {
     private http: HttpClient;
