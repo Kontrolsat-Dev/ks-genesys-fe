@@ -83,9 +83,6 @@ export type ProductExt = ProductListItemOut;
 export type ProductMetaOut = {
   name: string;
   value: string;
-  // Backend atualmente NÃO envia created_at.
-  // Mantemos como opcional para não arrebentar o componente,
-  // e depois podemos decidir se mostramos outra coisa ou removemos da UI.
   created_at?: string | null;
 };
 
@@ -145,4 +142,40 @@ export type ProductDetailParams = {
 
 export type ProductMarginUpdate = {
   margin: number;
+};
+
+// --- MOVIMENTOS DE PREÇO ---
+
+export type PriceChangeDirection = "up" | "down" | "both";
+
+export type ProductPriceChangeListParams = {
+  direction?: PriceChangeDirection; // default: "down"
+  days?: number;
+  min_abs_delta?: number | null;
+  min_pct_delta?: number | null;
+  page?: number;
+  page_size?: number;
+};
+
+export type ProductPriceChangeItem = {
+  id_product: number;
+  name: string | null;
+  brand_name: string | null;
+  category_name: string | null;
+
+  previous_price: string | null; // vem como string do backend
+  current_price: string | null; // idem
+
+  delta_abs: string | null; // "-37.99"
+  delta_pct: string | null; // "-62.33"
+
+  direction: Exclude<PriceChangeDirection, "both">; // "up" | "down"
+  updated_at: string;
+};
+
+export type ProductPriceChangeListOut = {
+  items: ProductPriceChangeItem[];
+  total: number;
+  page: number;
+  page_size: number;
 };

@@ -8,6 +8,8 @@ import type {
   ProductDetailParams,
   ProductDetailResponse,
   ProductMarginUpdate,
+  ProductPriceChangeListParams,
+  ProductPriceChangeListOut,
 } from "./types";
 
 export class ProductsService {
@@ -90,6 +92,56 @@ export class ProductsService {
           events_days: params.events_days ?? 90,
           events_limit: params.events_limit ?? 2000,
           aggregate_daily: params.aggregate_daily ?? true,
+        },
+      }
+    );
+  }
+
+  listActivityOfferPriceChanges(params: ProductPriceChangeListParams = {}) {
+    const {
+      direction = "down", // default igual ao backend
+      days = 7, // janela temporal default (7 dias)
+      min_abs_delta = null, // sem filtro por defeito
+      min_pct_delta = null, // sem filtro por defeito
+      page = 1,
+      page_size = 50,
+    } = params;
+
+    return this.http.get<ProductPriceChangeListOut>(
+      Endpoints.PRODUCT_ACTIVE_OFFER_PRICE_CHANGES,
+      {
+        params: {
+          direction,
+          days,
+          min_abs_delta,
+          min_pct_delta,
+          page,
+          page_size,
+        },
+      }
+    );
+  }
+
+  listCatalogPriceChanges(params: ProductPriceChangeListParams = {}) {
+    const {
+      direction = "down",
+      days = 30,
+      min_abs_delta = 0, // aqui o backend já tem default 0
+      min_pct_delta = 5, // e 5%
+      page = 1,
+      page_size = 50,
+    } = params;
+
+    return this.http.get<ProductPriceChangeListOut>(
+      Endpoints.PRODUCT_CATALOG_PRICE_CHANGES,
+      {
+        params: {
+          direction,
+          days,
+          min_abs_delta,
+          min_pct_delta,
+          page,
+          page_size,
         },
       }
     );
