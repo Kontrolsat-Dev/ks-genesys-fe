@@ -19,11 +19,13 @@ export class BrandsService {
   list(params: BrandsListParams = {}) {
     const { page = 1, pageSize = 20, q = null } = params;
 
+    const search = q && q.trim().length ? q.trim() : null;
+
     return this.http.get<BrandsListResponse>(Endpoints.BRANDS, {
       params: {
         page,
         page_size: pageSize,
-        q,
+        ...(search ? { search } : {}),
       },
     });
   }

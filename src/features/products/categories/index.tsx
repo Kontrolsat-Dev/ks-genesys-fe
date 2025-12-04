@@ -19,19 +19,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Search, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  Search,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Highlight from "@/components/genesys-ui/hightlight";
 import { useCategoriesList } from "./queries";
 import { TableEmpty, TableSkeleton } from "@/features/products/components";
-
-function useDebounced<T>(value: T, delay = 350) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return v;
-}
+import useDebounced from "@/lib/debounce";
 
 export default function CategoriesPage() {
   const [sp, setSp] = useSearchParams();
@@ -120,8 +118,6 @@ export default function CategoriesPage() {
             </Select>
           </div>
         </div>
-
-
       </Card>
 
       {/* Tabela */}
@@ -197,8 +193,7 @@ export default function CategoriesPage() {
                 <>
                   <span className="text-muted-foreground/50">•</span>
                   <span className="flex items-center gap-1.5">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    a atualizar
+                    <Loader2 className="h-3 w-3 animate-spin" />a atualizar
                   </span>
                 </>
               )}
