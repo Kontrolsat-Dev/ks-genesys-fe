@@ -21,6 +21,7 @@ import {
 
 import type { Brand } from "@/api/brands";
 import type { Category } from "@/api/categories";
+import type { Supplier } from "@/api/suppliers";
 
 type ProductsFiltersBarProps = {
   qInput: string;
@@ -29,6 +30,7 @@ type ProductsFiltersBarProps = {
   pageSize: number;
   id_brand: number | null;
   id_category: number | null;
+  id_supplier: number | null;
   hasStockUI: "all" | "in" | "out";
   importedUI: "all" | "imported" | "not_imported";
   onChangeSort: (v: "recent" | "name" | "cheapest") => void;
@@ -37,12 +39,15 @@ type ProductsFiltersBarProps = {
   onChangeImported: (v: "all" | "imported" | "not_imported") => void;
   onChangeBrand: (v: string) => void;
   onChangeCategory: (v: string) => void;
+  onChangeSupplier: (v: string) => void;
+  onResetFilters: () => void;
   brands: Brand[];
   categories: Category[];
+  suppliers: Supplier[];
   isLoadingBrands: boolean;
   isLoadingCategories: boolean;
+  isLoadingSuppliers: boolean;
 };
-
 type AdvancedFilterFieldProps = {
   label: string;
   children: ReactNode;
@@ -64,6 +69,7 @@ export default function ProductsFiltersBar({
   pageSize,
   id_brand,
   id_category,
+  id_supplier,
   hasStockUI,
   importedUI,
   onChangeSort,
@@ -72,22 +78,27 @@ export default function ProductsFiltersBar({
   onChangeImported,
   onChangeBrand,
   onChangeCategory,
+  onChangeSupplier,
+  onResetFilters,
   brands,
   categories,
+  suppliers,
   isLoadingBrands,
   isLoadingCategories,
+  isLoadingSuppliers,
 }: ProductsFiltersBarProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const hasAnyAdvancedFilter =
-    !!id_brand || !!id_category || hasStockUI !== "all" || importedUI !== "all";
+    !!id_brand ||
+    !!id_category ||
+    !!id_supplier ||
+    hasStockUI !== "all" ||
+    importedUI !== "all" ||
+    !!qInput;
 
   const handleClearAdvanced = () => {
-    // Reset de todos os filtros avançados
-    onChangeBrand("all");
-    onChangeCategory("all");
-    onChangeHasStock("all");
-    onChangeImported("all");
+    onResetFilters();
   };
 
   const handleClearBrand = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -98,6 +109,11 @@ export default function ProductsFiltersBar({
   const handleClearCategory = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onChangeCategory("all");
+  };
+
+  const handleClearSupplier = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onChangeSupplier("all");
   };
 
   return (
@@ -185,7 +201,42 @@ export default function ProductsFiltersBar({
             </div>
 
             {/* Linha 1: Marca + Categoria */}
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 grid-cols-3">
+              <AdvancedFilterField label="Fornecedor (opcional)">
+                <div className="relative">
+                  <Select
+                    value={id_supplier ? String(id_supplier) : "all"}
+                    onValueChange={onChangeSupplier}
+                  >
+                    <SelectTrigger className="w-full pr-7">
+                      <SelectValue placeholder="Selecionar fornecedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {isLoadingSuppliers
+                          ? "A carregar fornecedores…"
+                          : "Todos os fornecedores"}
+                      </SelectItem>
+                      {suppliers.map((s) => (
+                        <SelectItem key={s.id} value={s.id.toString()}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {id_supplier && (
+                    <button
+                      type="button"
+                      onClick={handleClearSupplier}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+                      aria-label="Limpar fornecedor"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </AdvancedFilterField>
               <AdvancedFilterField label="Marca (opcional)">
                 <div className="relative">
                   <Select

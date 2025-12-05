@@ -1,13 +1,7 @@
 // src/features/products/queries.ts
-import {
-  keepPreviousData,
-  useQuery,
-  type UseQueryResult,
-} from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { productsClient } from "@/api/products";
 import type { ProductListParams, ProductListResponse } from "@/api/products";
-import { useBrandsList } from "@/features/products/brands/queries";
-import { useCategoriesList } from "@/features/products/categories/queries";
 
 export const productKeys = {
   root: ["products"] as const,

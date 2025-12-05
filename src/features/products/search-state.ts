@@ -1,15 +1,7 @@
 // src/features/products/search-state.ts
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-
-function useDebounced<T>(value: T, delay = 350) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return v;
-}
+import useDebounced from "@/lib/debounce";
 
 const parseIntSafe = (v: string | null, def = 1) => {
   const n = Number(v);
@@ -54,6 +46,9 @@ export type ProductsSearchState = {
   setImportedUI: (val: "all" | "imported" | "not_imported") => void;
   setBrandId: (val: string) => void;
   setCategoryId: (val: string) => void;
+  setSupplierId: (val: string) => void;
+
+  resetAllFilters: () => void;
 };
 
 export function useProductsSearchState(): ProductsSearchState {
@@ -106,6 +101,15 @@ export function useProductsSearchState(): ProductsSearchState {
     const usp = new URLSearchParams(sp);
     mutate(usp);
     setSp(usp);
+  };
+
+  const resetAllFilters = () => {
+    const usp = new URLSearchParams();
+    usp.set("page", "1");
+    usp.set("page_size", String(pageSize)); // mantém o pageSize atual
+    // não colocamos q, id_brand, id_category, id_supplier, has_stock, imported, etc.
+    setSp(usp, { replace: true });
+    setQInput(""); // limpa o input imediatamente
   };
 
   return {
@@ -172,5 +176,14 @@ export function useProductsSearchState(): ProductsSearchState {
         else u.set("id_category", v);
         u.set("page", "1");
       }),
+
+    setSupplierId: (v: string) =>
+      updateSp((u) => {
+        if (v === "all") u.delete("id_supplier");
+        else u.set("id_supplier", v);
+        u.set("page", "1");
+      }),
+
+    resetAllFilters,
   };
 }

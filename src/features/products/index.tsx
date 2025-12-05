@@ -10,6 +10,7 @@ import { useProductsSearchState } from "./search-state";
 import type { ProductExt } from "@/api/products";
 import ProductsFiltersBar from "./components/products-filters-bar";
 import ProductsTable from "./components/products-table";
+import { useSuppliersList } from "../suppliers/queries";
 
 export default function ProductsPage() {
   const searchState = useProductsSearchState();
@@ -18,6 +19,11 @@ export default function ProductsPage() {
   const { data: brands = [], isLoading: isLoadingBrands } = useAllBrands();
   const { data: categories = [], isLoading: isLoadingCategories } =
     useAllCategories();
+
+  const { data: suppliersRes, isLoading: isLoadingSuppliers } =
+    useSuppliersList({ page: 1, pageSize: 200, search: null });
+
+  const suppliers = suppliersRes?.items ?? [];
 
   // listagem de produtos
   const { data, isLoading, isFetching } = useProductsList({
@@ -34,15 +40,15 @@ export default function ProductsPage() {
     sort: searchState.sort,
   });
 
+  const items: ProductExt[] = data?.items ?? [];
+
   const totalPages = useMemo(
     () => (data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1),
     [data]
   );
   const elapsedMs = (data as any)?.elapsedMs as number | undefined;
-  const items: ProductExt[] = data?.items ?? [];
 
   const goPrev = () => searchState.setPage(Math.max(1, searchState.page - 1));
-
   const goNext = () =>
     searchState.setPage(Math.min(totalPages, searchState.page + 1));
 
@@ -57,6 +63,7 @@ export default function ProductsPage() {
           pageSize={searchState.pageSize}
           id_brand={searchState.id_brand}
           id_category={searchState.id_category}
+          id_supplier={searchState.id_supplier}
           hasStockUI={searchState.hasStockUI}
           importedUI={searchState.importedUI}
           onChangeSort={searchState.setSort}
@@ -65,10 +72,14 @@ export default function ProductsPage() {
           onChangeImported={searchState.setImportedUI}
           onChangeBrand={searchState.setBrandId}
           onChangeCategory={searchState.setCategoryId}
+          onChangeSupplier={searchState.setSupplierId}
+          onResetFilters={searchState.resetAllFilters}
           brands={brands}
           categories={categories}
+          suppliers={suppliers}
           isLoadingBrands={isLoadingBrands}
           isLoadingCategories={isLoadingCategories}
+          isLoadingSuppliers={isLoadingSuppliers}
         />
 
         {/* Tabela com paginação integrada */}
@@ -76,7 +87,6 @@ export default function ProductsPage() {
           items={items}
           qParam={searchState.qParam}
           isLoading={isLoading}
-          // Pagination props
           currentPage={data?.page ?? searchState.page}
           totalPages={totalPages}
           totalResults={data?.total ?? 0}
@@ -84,9 +94,7 @@ export default function ProductsPage() {
           isFetching={isFetching}
           onPrevPage={goPrev}
           onNextPage={goNext}
-        />\
-
-
+        />
       </div>
     </TooltipProvider>
   );
