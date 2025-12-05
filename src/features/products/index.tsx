@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-import { useProductsList } from "./queries";
+import { useProductsList, useProductsFacets } from "./queries";
 import { useAllCategories } from "./categories/queries";
 import { useAllBrands } from "./brands/queries";
 import { useProductsSearchState } from "./search-state";
@@ -15,15 +15,34 @@ import { useSuppliersList } from "../suppliers/queries";
 export default function ProductsPage() {
   const searchState = useProductsSearchState();
 
-  // dropdowns
+  // dropdowns base
   const { data: brands = [], isLoading: isLoadingBrands } = useAllBrands();
   const { data: categories = [], isLoading: isLoadingCategories } =
     useAllCategories();
 
   const { data: suppliersRes, isLoading: isLoadingSuppliers } =
-    useSuppliersList({ page: 1, pageSize: 200, search: null });
-
+    useSuppliersList({
+      page: 1,
+      pageSize: 200,
+      search: null,
+    });
   const suppliers = suppliersRes?.items ?? [];
+
+  // facets (dependem dos filtros atuais)
+  const { data: facets, isFetching: isFetchingFacets } = useProductsFacets({
+    q: searchState.qParam,
+    gtin: searchState.gtin,
+    partnumber: searchState.partnumber,
+    id_brand: searchState.id_brand,
+    id_category: searchState.id_category,
+    id_supplier: searchState.id_supplier,
+    has_stock: searchState.hasStock,
+    imported: searchState.imported,
+  });
+
+  const facetBrandIds = facets?.brand_ids ?? null;
+  const facetCategoryIds = facets?.category_ids ?? null;
+  const facetSupplierIds = facets?.supplier_ids ?? null;
 
   // listagem de produtos
   const { data, isLoading, isFetching } = useProductsList({
@@ -52,6 +71,37 @@ export default function ProductsPage() {
   const goNext = () =>
     searchState.setPage(Math.min(totalPages, searchState.page + 1));
 
+  // aplicar facets às opções dos dropdowns
+  const filteredBrands = useMemo(() => {
+    if (!facetBrandIds) return brands;
+    const allowed = new Set(facetBrandIds);
+    const selectedId = searchState.id_brand ?? null;
+
+    return brands.filter(
+      (b) => allowed.has(b.id) || (selectedId !== null && b.id === selectedId)
+    );
+  }, [brands, facetBrandIds, searchState.id_brand]);
+
+  const filteredCategories = useMemo(() => {
+    if (!facetCategoryIds) return categories;
+    const allowed = new Set(facetCategoryIds);
+    const selectedId = searchState.id_category ?? null;
+
+    return categories.filter(
+      (c) => allowed.has(c.id) || (selectedId !== null && c.id === selectedId)
+    );
+  }, [categories, facetCategoryIds, searchState.id_category]);
+
+  const filteredSuppliers = useMemo(() => {
+    if (!facetSupplierIds) return suppliers;
+    const allowed = new Set(facetSupplierIds);
+    const selectedId = searchState.id_supplier ?? null;
+
+    return suppliers.filter(
+      (s) => allowed.has(s.id) || (selectedId !== null && s.id === selectedId)
+    );
+  }, [suppliers, facetSupplierIds, searchState.id_supplier]);
+
   return (
     <TooltipProvider delayDuration={100}>
       <div className="mx-auto space-y-6">
@@ -74,12 +124,15 @@ export default function ProductsPage() {
           onChangeCategory={searchState.setCategoryId}
           onChangeSupplier={searchState.setSupplierId}
           onResetFilters={searchState.resetAllFilters}
-          brands={brands}
-          categories={categories}
-          suppliers={suppliers}
+          // opções já filtradas via facets
+          brands={filteredBrands}
+          categories={filteredCategories}
+          suppliers={filteredSuppliers}
           isLoadingBrands={isLoadingBrands}
           isLoadingCategories={isLoadingCategories}
           isLoadingSuppliers={isLoadingSuppliers}
+          // NOVO: feedback visual quando facets estão a refazer-se
+          isUpdatingFacets={isFetchingFacets}
         />
 
         {/* Tabela com paginação integrada */}

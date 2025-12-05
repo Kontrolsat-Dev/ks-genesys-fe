@@ -29,6 +29,7 @@ export const Endpoints = {
   PRODUCT_UPDATE_MARGIN: (id: number) => `products/${id}/margin`,
   PRODUCT_ACTIVE_OFFER_PRICE_CHANGES: "products/active-offer/price-changes",
   PRODUCT_CATALOG_PRICE_CHANGES: "products/price-changes/catalog",
+  PRODUCTS_FACETS: "products/facets",
 
   // Categories
   CATEGORIES: "categories",

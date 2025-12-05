@@ -1,4 +1,4 @@
-// src/api/products/index.ts (ou equivalente)
+// src/api/products/service.ts
 import { HttpClient } from "@/lib/http-client";
 import { Endpoints } from "@/constants/endpoints";
 import { authStore } from "@/lib/auth-store";
@@ -10,6 +10,8 @@ import type {
   ProductMarginUpdate,
   ProductPriceChangeListParams,
   ProductPriceChangeListOut,
+  ProductFacetsParams,
+  ProductFacetsOut,
 } from "./types";
 
 export class ProductsService {
@@ -39,7 +41,7 @@ export class ProductsService {
       has_stock = null,
       id_supplier = null,
       sort = "recent",
-      imported = null, // <-- NOVO
+      imported = null,
     } = params;
 
     return this.http.get<ProductListResponse>(Endpoints.PRODUCTS, {
@@ -56,7 +58,38 @@ export class ProductsService {
         has_stock,
         id_supplier,
         sort,
-        imported, // <-- NOVO
+        imported,
+      },
+    });
+  }
+
+  // ✅ NOVO: Facets (brands/categories/suppliers válidos para os filtros atuais)
+  facets(params: ProductFacetsParams = {}) {
+    const {
+      q = null,
+      gtin = null,
+      partnumber = null,
+      id_brand = null,
+      brand = null,
+      id_category = null,
+      category = null,
+      has_stock = null,
+      id_supplier = null,
+      imported = null,
+    } = params;
+
+    return this.http.get<ProductFacetsOut>(Endpoints.PRODUCTS_FACETS, {
+      params: {
+        q,
+        gtin,
+        partnumber,
+        id_brand,
+        brand,
+        id_category,
+        category,
+        has_stock,
+        id_supplier,
+        imported,
       },
     });
   }

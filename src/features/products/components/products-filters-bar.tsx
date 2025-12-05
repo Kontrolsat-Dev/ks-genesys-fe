@@ -1,5 +1,5 @@
 // src/features/products/components/products-filters-bar.tsx
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, type MouseEvent } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronUp,
   XCircle,
+  Loader2,
 } from "lucide-react";
 
 import type { Brand } from "@/api/brands";
@@ -26,13 +27,17 @@ import type { Supplier } from "@/api/suppliers";
 type ProductsFiltersBarProps = {
   qInput: string;
   setQInput: (v: string) => void;
+
   sort: "recent" | "name" | "cheapest";
   pageSize: number;
+
   id_brand: number | null;
   id_category: number | null;
   id_supplier: number | null;
+
   hasStockUI: "all" | "in" | "out";
   importedUI: "all" | "imported" | "not_imported";
+
   onChangeSort: (v: "recent" | "name" | "cheapest") => void;
   onChangePageSize: (v: number) => void;
   onChangeHasStock: (v: "all" | "in" | "out") => void;
@@ -41,13 +46,19 @@ type ProductsFiltersBarProps = {
   onChangeCategory: (v: string) => void;
   onChangeSupplier: (v: string) => void;
   onResetFilters: () => void;
+
   brands: Brand[];
   categories: Category[];
   suppliers: Supplier[];
+
   isLoadingBrands: boolean;
   isLoadingCategories: boolean;
   isLoadingSuppliers: boolean;
+
+  /** True quando o endpoint de facets está a recalcular as opções */
+  isUpdatingFacets: boolean;
 };
+
 type AdvancedFilterFieldProps = {
   label: string;
   children: ReactNode;
@@ -86,6 +97,7 @@ export default function ProductsFiltersBar({
   isLoadingBrands,
   isLoadingCategories,
   isLoadingSuppliers,
+  isUpdatingFacets,
 }: ProductsFiltersBarProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -101,17 +113,17 @@ export default function ProductsFiltersBar({
     onResetFilters();
   };
 
-  const handleClearBrand = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClearBrand = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onChangeBrand("all");
   };
 
-  const handleClearCategory = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClearCategory = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onChangeCategory("all");
   };
 
-  const handleClearSupplier = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClearSupplier = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onChangeSupplier("all");
   };
@@ -174,34 +186,41 @@ export default function ProductsFiltersBar({
         </div>
       </div>
 
-      {/* Painel de pesquisa avançada - Com animação */}
+      {/* Painel de pesquisa avançada - com animação */}
       <div
         className="grid transition-all duration-300 ease-in-out"
-        style={{
-          gridTemplateRows: showAdvanced ? "1fr" : "0fr",
-        }}
+        style={{ gridTemplateRows: showAdvanced ? "1fr" : "0fr" }}
       >
         <div className="overflow-hidden">
-          <div className="space-y-3 rounded-md border bg-muted/40 p-3 mt-3">
+          <div className="mt-3 space-y-3 rounded-md border bg-muted/40 p-3">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>Filtros avançados do catálogo</span>
 
-              {hasAnyAdvancedFilter && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs h-auto"
-                  onClick={handleClearAdvanced}
-                >
-                  <XCircle className="h-3 w-3" />
-                  <span>Limpar filtros</span>
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {isUpdatingFacets && (
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />a atualizar
+                    filtros…
+                  </span>
+                )}
+
+                {hasAnyAdvancedFilter && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="inline-flex h-auto items-center gap-1 px-2 py-1 text-xs"
+                    onClick={handleClearAdvanced}
+                  >
+                    <XCircle className="h-3 w-3" />
+                    <span>Limpar filtros</span>
+                  </Button>
+                )}
+              </div>
             </div>
 
-            {/* Linha 1: Marca + Categoria */}
-            <div className="grid gap-3 grid-cols-3">
+            {/* Linha 1: Fornecedor + Marca + Categoria */}
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <AdvancedFilterField label="Fornecedor (opcional)">
                 <div className="relative">
                   <Select
@@ -237,6 +256,7 @@ export default function ProductsFiltersBar({
                   )}
                 </div>
               </AdvancedFilterField>
+
               <AdvancedFilterField label="Marca (opcional)">
                 <div className="relative">
                   <Select

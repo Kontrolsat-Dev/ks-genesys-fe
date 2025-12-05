@@ -78,6 +78,28 @@ export type ProductListResponse = {
  */
 export type ProductExt = ProductListItemOut;
 
+// --- FACETS ---
+// Mesmos filtros do list, mas sem paginação/sort
+
+export type ProductFacetsParams = {
+  q?: string | null;
+  gtin?: string | null;
+  partnumber?: string | null;
+  id_brand?: number | null;
+  brand?: string | null;
+  id_category?: number | null;
+  category?: string | null;
+  has_stock?: boolean | null;
+  id_supplier?: number | null;
+  imported?: boolean | null;
+};
+
+export type ProductFacetsOut = {
+  brand_ids: number[];
+  category_ids: number[];
+  supplier_ids: number[];
+};
+
 // --- DETALHE ---
 
 export type ProductMetaOut = {
