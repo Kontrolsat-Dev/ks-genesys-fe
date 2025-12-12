@@ -1,24 +1,36 @@
 // src/features/products/categories/queries.ts
-import { useQuery, QueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, QueryClient } from "@tanstack/react-query";
 import {
   categoriesClient,
   type CategoriesListParams,
   type CategoriesListResponse,
   type Category,
+  type CategoryMappingIn,
 } from "@/api/categories";
 
 export const categoriesKey = {
   root: ["categories"] as const,
-  list: (params: { page: number; pageSize: number; q: string | null }) =>
-    [...categoriesKey.root, "list", params] as const,
+  list: (params: {
+    page: number;
+    pageSize: number;
+    q: string | null;
+    autoImport: boolean | null;
+  }) => [...categoriesKey.root, "list", params] as const,
   all: ["categories", "all"] as const,
+  mapped: ["categories", "mapped"] as const,
 };
 
 export function useCategoriesList(params: CategoriesListParams = {}) {
-  const q: { page: number; pageSize: number; q: string | null } = {
+  const q: {
+    page: number;
+    pageSize: number;
+    q: string | null;
+    autoImport: boolean | null;
+  } = {
     page: params.page ?? 1,
     pageSize: params.pageSize ?? 20,
     q: params.q ?? null,
+    autoImport: params.autoImport ?? null,
   };
 
   return useQuery<CategoriesListResponse & { elapsedMs?: number }>({
@@ -38,10 +50,16 @@ export async function prefetchCategoryList(
   qc: QueryClient,
   params: CategoriesListParams = {}
 ) {
-  const q: { page: number; pageSize: number; q: string | null } = {
+  const q: {
+    page: number;
+    pageSize: number;
+    q: string | null;
+    autoImport: boolean | null;
+  } = {
     page: params.page ?? 1,
     pageSize: params.pageSize ?? 20,
     q: params.q ?? null,
+    autoImport: params.autoImport ?? null,
   };
 
   await qc.prefetchQuery({
@@ -92,3 +110,33 @@ export function useAllCategories() {
     gcTime: 10 * 60_000,
   });
 }
+
+/**
+ * Mutation para atualizar mapping de categoria para PrestaShop
+ */
+export function useUpdateCategoryMapping() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: CategoryMappingIn }) =>
+      categoriesClient.updateMapping(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: categoriesKey.root });
+    },
+  });
+}
+
+/**
+ * Mutation para remover mapping de categoria
+ */
+export function useDeleteCategoryMapping() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => categoriesClient.deleteMapping(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: categoriesKey.root });
+    },
+  });
+}
+

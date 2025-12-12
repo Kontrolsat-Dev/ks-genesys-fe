@@ -1,7 +1,6 @@
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw, Upload } from "lucide-react";
 import type { ProductOut } from "@/api/products/types";
 import { cx } from "@/lib/utils";
 import { toast } from "sonner";
@@ -11,6 +10,8 @@ type Props = {
   onBack: () => void;
   onRefresh: () => void;
   isRefreshing?: boolean;
+  onImport?: () => void;
+  isImported?: boolean;
 };
 
 async function copyText(text: string, label: string) {
@@ -70,6 +71,8 @@ export default function ProductHeader({
   onBack,
   onRefresh,
   isRefreshing,
+  onImport,
+  isImported,
 }: Props) {
   return (
     <div className="space-y-1">
@@ -112,13 +115,24 @@ export default function ProductHeader({
           </Button>
           <Button
             onClick={onRefresh}
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+            variant="outline"
+            className="gap-2"
           >
             <RefreshCw
               className={cx("h-4 w-4", isRefreshing && "animate-spin")}
             />
             Refresh
           </Button>
+          {onImport && (
+            <Button
+              onClick={onImport}
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+              disabled={isImported}
+            >
+              <Upload className="h-4 w-4" />
+              {isImported ? "Importado" : "Importar"}
+            </Button>
+          )}
         </div>
       </div>
 

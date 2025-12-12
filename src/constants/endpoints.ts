@@ -34,9 +34,14 @@ export const Endpoints = {
 
   // Categories
   CATEGORIES: "categories",
+  CATEGORIES_MAPPED: "categories/mapped",
+  CATEGORY_MAPPING: (id: number) => `categories/${id}/mapping`,
 
   // Brands
   BRANDS: "brands",
+
+  // PrestaShop
+  PRESTASHOP_CATEGORIES: "prestashop/categories",
 
   // ----------- System
   HEALTHZ: "healthz",

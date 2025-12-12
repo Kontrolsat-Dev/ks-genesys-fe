@@ -13,7 +13,9 @@ import {
   ProductPriceChart,
   ProductStockChart,
   ProductLoadingPage,
+  ImportProductModal,
 } from "@/features/products/product/components";
+import { useAllCategories } from "@/features/products/categories/queries";
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,10 +31,15 @@ export default function ProductPage() {
     aggregate_daily: true,
   });
 
+  const [importModalOpen, setImportModalOpen] = useState(false);
+
   const { data, isLoading, isRefetching, refetch, error } = useProductDetail(
     productId,
     params
   );
+
+  // Get all categories to find the one for this product
+  const { data: allCategories = [] } = useAllCategories();
 
   if (!Number.isFinite(productId) || productId <= 0) {
     return (
@@ -79,6 +86,12 @@ export default function ProductPage() {
     active_offer,
   } = data;
 
+  // Find category with full details (including PS mapping)
+  const productCategory =
+    allCategories.find((c) => c.id === p.id_category) ?? null;
+
+  const isImported = p.id_ecommerce != null;
+
   return (
     <div className="space-y-3 ">
       <Card className="p-6">
@@ -87,6 +100,8 @@ export default function ProductPage() {
           onBack={() => nav("/products")}
           onRefresh={() => refetch()}
           isRefreshing={isRefetching}
+          onImport={() => setImportModalOpen(true)}
+          isImported={isImported}
         />
       </Card>
 
@@ -119,6 +134,16 @@ export default function ProductPage() {
         <ProductPriceChart events={events ?? []} />
         <ProductStockChart events={events ?? []} />
       </div>
+
+      {/* Import Modal */}
+      <ImportProductModal
+        product={p}
+        category={productCategory}
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        onImportSuccess={() => refetch()}
+      />
     </div>
   );
 }
+
