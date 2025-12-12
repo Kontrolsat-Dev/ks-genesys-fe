@@ -122,11 +122,14 @@ export default function SupplierFormSection({
         </div>
 
         <div className="col-span-5 space-y-2">
-          <Label>Próxima execução</Label>
+          <Label className="flex items-baseline">
+            Próxima execução{" "}
+            <span className="text-xs">(Gerido pelo sistema)</span>
+          </Label>
           <Input
             placeholder="Gerido automaticamente pelo sistema"
             {...form.register("ingest_next_run_at")}
-            disabled={!!isBusy}
+            disabled={true}
           />
           {/* Se quiseres deixar totalmente read-only, troca por:
           <Input

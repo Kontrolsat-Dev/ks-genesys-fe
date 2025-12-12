@@ -1,20 +1,17 @@
 // src/app/layouts/topbar.tsx
-// Componente Topbar que exibe o topo da aplicação com botões de navegação, estado do backend, pesquisa e alternância de tema.
+// Componente Topbar moderno estilo Vercel
 
 import { useHealthz } from "@/features/system/healthz/queries.ts";
-import { StatusDot } from "@/components/feedback/status-dot";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Loader2,
   Moon,
-  RefreshCcw,
   Sun,
   Menu,
-  X,
-  ChevronLeft,
-  ChevronRight,
+  PanelLeftClose,
+  PanelLeft,
   Search,
+  Command,
 } from "lucide-react";
 import { useTheme } from "@/providers/theme-provider";
 import { useEffect, useRef, useState } from "react";
@@ -22,10 +19,10 @@ import { useNavigate } from "react-router-dom";
 import { parseProductSearch } from "@/lib/product-search";
 
 type Props = {
-  onToggleMobile: () => void; // abre/fecha gaveta no mobile
-  onToggleMini: () => void; // alterna mini/expandida no desktop
-  isSidebarOpen: boolean; // estado da gaveta no mobile
-  mini: boolean; // estado "mini" (largura) no desktop
+  onToggleMobile: () => void;
+  onToggleMini: () => void;
+  isSidebarOpen: boolean;
+  mini: boolean;
 };
 
 export default function Topbar({
@@ -34,7 +31,7 @@ export default function Topbar({
   isSidebarOpen,
   mini,
 }: Props) {
-  const { data, isFetching, refetch, isError } = useHealthz();
+  const { data, isFetching, isError } = useHealthz();
 
   const status = isError
     ? "critical"
@@ -44,9 +41,9 @@ export default function Topbar({
 
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
-  const latencyMs = data?.elapsedMs ? Math.round(data.elapsedMs) : null;
   const inputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,141 +69,122 @@ export default function Topbar({
     if (intent.q) usp.set("q", intent.q);
     if (intent.gtin) usp.set("gtin", intent.gtin);
     if (intent.partnumber) usp.set("partnumber", intent.partnumber);
-    // Mantém a página em 1 sempre que há nova pesquisa
     usp.set("page", "1");
     navigate(`/products?${usp.toString()}`);
   };
 
   return (
-    <div className="sticky top-0 z-10 h-14 border-b bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/40">
-      <div className="flex h-14 items-center justify-between px-4">
-        {/* Esquerda: botões + título */}
-        <div className="flex items-center gap-2">
-          {/* Mobile: abrir/fechar gaveta */}
-          <Button
-            variant="link"
-            size="icon"
+    <header className="sticky top-0 z-30 h-14 border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-full items-center gap-4 px-4">
+        {/* Left: Toggle buttons */}
+        <div className="flex items-center gap-1">
+          {/* Mobile menu */}
+          <button
             onClick={onToggleMobile}
-            aria-label={isSidebarOpen ? "Fechar navegação" : "Abrir navegação"}
-            className="md:hidden"
+            aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
+            className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
           >
-            {isSidebarOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
+            <Menu className="h-5 w-5 text-muted-foreground" />
+          </button>
 
-          {/* Desktop: mini/expandir sidebar (largura) */}
-          <Button
-            variant="link"
-            size="icon"
+          {/* Desktop sidebar toggle */}
+          <button
             onClick={onToggleMini}
-            aria-label={
-              mini ? "Expandir barra lateral" : "Colapsar barra lateral"
-            }
-            className="hidden md:inline-flex"
+            aria-label={mini ? "Expandir sidebar" : "Colapsar sidebar"}
+            className="hidden md:flex p-2 rounded-lg hover:bg-muted transition-colors"
           >
             {mini ? (
-              <ChevronRight className="h-5 w-5" />
+              <PanelLeft className="h-4 w-4 text-muted-foreground" />
             ) : (
-              <ChevronLeft className="h-5 w-5" />
+              <PanelLeftClose className="h-4 w-4 text-muted-foreground" />
             )}
-          </Button>
-
-          <div className="flex flex-col text-start justify-start align-center">
-            <div className="text-sm font-medium">Genesys</div>
-            <span className="text-xs text-muted-foreground">
-              Sistema de Tratamento de Fornecedores e Encomendas
-            </span>
-          </div>
+          </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex-1 flex justify-center px-2"
-        >
-          <div className="relative w-full max-w-md">
-            <span className="absolute left-2 top-1/2 -translate-y-1/2">
-              <Search className="h-4 w-4 text-slate-400 pointer-events-none" />
-            </span>
+        {/* Center: Search */}
+        <form onSubmit={handleSubmit} className="flex-1 max-w-xl mx-auto">
+          <div
+            className={cn(
+              "relative flex items-center rounded-lg border bg-muted/50 transition-all duration-200",
+              searchFocused
+                ? "border-foreground/20 bg-background ring-1 ring-foreground/10"
+                : "border-transparent hover:bg-muted/80"
+            )}
+          >
+            <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
               ref={inputRef}
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Pesquisar… (Ctrl / Cmd + K)"
-              className="w-full rounded-md border pl-8 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-400"
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              placeholder="Pesquisar produtos..."
+              className="w-full bg-transparent pl-9 pr-20 py-2 text-sm outline-none placeholder:text-muted-foreground/60"
               aria-label="Pesquisar"
             />
+            {/* Keyboard shortcut badge */}
+            <div className="absolute right-2 hidden sm:flex items-center gap-1 text-xs text-muted-foreground/60">
+              <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">
+                <Command className="inline h-2.5 w-2.5" />
+              </kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">
+                K
+              </kbd>
+            </div>
           </div>
         </form>
 
-        {/* Direita: estado + ações */}
-        <div className="flex items-center gap-3">
+        {/* Right: Status & Actions */}
+        <div className="flex items-center gap-2">
+          {/* Status indicator - minimal with detailed tooltip */}
           <div
-            className={cn(
-              "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs",
-              status === "ok" && "border-emerald-200",
-              status !== "ok" && "border-amber-200"
-            )}
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors cursor-default"
             title={
-              isError
-                ? "Erro ao verificar saúde do backend"
-                : "Estado do backend"
+              isError 
+                ? "Backend indisponível" 
+                : [
+                    `Ambiente: ${data?.env ?? "?"}`,
+                    `Status: ${data?.status ?? "?"}`,
+                    data?.db_ok !== undefined ? `DB: ${data.db_ok ? "ok" : "down"}` : null,
+                    data?.elapsedMs ? `Latência: ${Math.round(data.elapsedMs)}ms` : null,
+                  ].filter(Boolean).join("\n")
             }
           >
-            <StatusDot status={status || "warning"} />
-            <span className="hidden sm:inline">
-              {isError ? "Backend: erro" : `Backend: ${data?.status ?? "…"}`}
+            <span
+              className={cn(
+                "h-2 w-2 rounded-full",
+                status === "ok" && "bg-emerald-500",
+                status === "warning" && "bg-amber-500",
+                status === "critical" && "bg-red-500"
+              )}
+            />
+            <span className="text-xs text-muted-foreground hidden lg:inline">
+              {isError ? "Erro" : (data?.env ?? "...")}
             </span>
-            {data?.env && (
-              <span className="text-muted-foreground">· {data.env}</span>
-            )}
-            {typeof data?.db_ok === "boolean" && (
-              <span
-                className={cn(
-                  "ml-1",
-                  data.db_ok ? "text-emerald-600" : "text-red-600"
-                )}
-              >
-                DB {data.db_ok ? "ok" : "down"}
-              </span>
-            )}
-            {latencyMs !== null && (
-              <span className="text-muted-foreground">· {latencyMs}ms</span>
-            )}
             {isFetching && (
-              <Loader2 className="ml-1 h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
             )}
           </div>
 
-          {/* Refresh */}
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => refetch()}
-            aria-label="Atualizar estado"
-          >
-            <RefreshCcw className="h-4 w-4" />
-          </Button>
+          {/* Divider */}
+          <div className="h-5 w-px bg-border hidden sm:block" />
 
-          {/* Toggle tema */}
-          <div
+          {/* Theme toggle */}
+          <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
-            className={`flex items-center cursor-pointer transition-transform duration-500 ${
-              isDark ? "rotate-180" : "rotate-0"
-            }`}
+            aria-label={isDark ? "Modo claro" : "Modo escuro"}
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
             {isDark ? (
-              <Sun className="h-6 w-6 text-yellow-500 rotate-0 transition-all" />
+              <Sun className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
             ) : (
-              <Moon className="h-6 w-6 text-blue-500 rotate-0 transition-all" />
+              <Moon className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
             )}
-            <span className="sr-only">Toggle theme</span>
-          </div>
+          </button>
         </div>
       </div>
-    </div>
+    </header>
   );
 }
+

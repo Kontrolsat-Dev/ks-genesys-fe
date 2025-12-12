@@ -10,7 +10,6 @@ const STORAGE_KEY = "sidebar_mini_v1";
 
 const PrivateLayout: React.FC = () => {
   const [mini, setMini] = useState<boolean>(() => {
-    // default: mini = true? Se quiseres expandido por defeito, mete false.
     return localStorage.getItem(STORAGE_KEY) === "1";
   });
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -35,14 +34,17 @@ const PrivateLayout: React.FC = () => {
           />
         )}
 
-        <div className="flex-1 flex flex-col min-w-0">
+        {/* Content area - single scroll container */}
+        <div id="main-scroll-container" className="flex-1 min-w-0 overflow-auto relative">
+          {/* Sticky topbar - will stick as user scrolls */}
           <Topbar
             mini={mini}
             isSidebarOpen={mobileOpen}
             onToggleMini={() => setMini((v) => !v)}
             onToggleMobile={() => setMobileOpen((v) => !v)}
           />
-          <main className="flex-1 overflow-auto px-8 pt-5 pb-10">
+          {/* Main content */}
+          <main className="px-8 pt-5 pb-10">
             <Outlet />
           </main>
         </div>
@@ -52,3 +54,4 @@ const PrivateLayout: React.FC = () => {
 };
 
 export default PrivateLayout;
+

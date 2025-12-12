@@ -60,14 +60,15 @@ export default function SidebarFooter({ mini }: { mini: boolean }) {
           mini ? "justify-center" : "justify-between"
         )}
       >
-        {/* Avatar/User icon */}
-        <div
-          className="h-10 w-10 rounded-xl bg-muted grid place-items-center shrink-0"
-          title={mini ? `${merchantName} — ${userName}` : undefined}
-          aria-label="Perfil"
-        >
-          <User className="h-5 w-5" />
-        </div>
+        {/* Avatar/User icon - hide when collapsed */}
+        {!mini && (
+          <div
+            className="h-10 w-10 rounded-xl bg-muted grid place-items-center shrink-0"
+            aria-label="Perfil"
+          >
+            <User className="h-5 w-5" />
+          </div>
+        )}
 
         {/* Texto (esconde em mini) */}
         {!mini && (

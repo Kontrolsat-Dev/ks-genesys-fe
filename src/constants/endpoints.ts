@@ -21,7 +21,8 @@ export const Endpoints = {
   MAPPER_OPS: "mappers/ops",
 
   // Runs
-  RUNS_INGEST_SUPPLIER: (id: number) => `runs/supplier/${id}/ingest`,
+  RUNS: "runs",
+  RUNS_INGEST_SUPPLIER: (id: number) => `runs/supplier/${id}/ingest/background`,
 
   //----------- Products
   PRODUCTS: "products",

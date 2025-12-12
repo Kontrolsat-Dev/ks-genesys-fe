@@ -1,6 +1,6 @@
 // src/features/suppliers/index.tsx
 import { useEffect, useMemo, useState } from "react";
-import { useSuppliersList, supplierKeys } from "./queries";
+import { useSuppliersList, supplierKeys, useTriggerRun } from "./queries";
 import { Card } from "@/components/ui/card";
 import SuppliersTable from "./components/suppliers-table";
 import PageHeader from "./components/page-header";
@@ -62,6 +62,23 @@ export default function SuppliersPage() {
     },
   });
 
+  const triggerIngestM = useTriggerRun();
+
+  async function handleRunIngest(id: number, name: string) {
+    try {
+      const promise = triggerIngestM.mutateAsync(id);
+      import("sonner").then(({ toast }) => {
+        toast.promise(promise, {
+          loading: `A iniciar ingest para ${name}...`,
+          success: `Ingest iniciado para ${name}`,
+          error: `Falha ao iniciar ingest para ${name}`,
+        });
+      });
+    } catch (error) {
+       // handled by toast.promise
+    }
+  }
+
   return (
     <div className="mx-auto space-y-6">
       <PageHeader
@@ -101,6 +118,7 @@ export default function SuppliersPage() {
             onEdit={(id) => nav(`/suppliers/${id}/edit`)}
             onDelete={(id) => deleteM.mutate(id)}
             deletingId={deletingId}
+            onRunIngest={handleRunIngest}
           />
         </div>
 

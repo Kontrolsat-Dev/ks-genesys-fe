@@ -67,9 +67,21 @@ export default function ProductsPage() {
   );
   const elapsedMs = (data as any)?.elapsedMs as number | undefined;
 
-  const goPrev = () => searchState.setPage(Math.max(1, searchState.page - 1));
-  const goNext = () =>
+  const scrollToTop = () => {
+    const container = document.getElementById("main-scroll-container");
+    if (container) {
+      container.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const goPrev = () => {
+    searchState.setPage(Math.max(1, searchState.page - 1));
+    scrollToTop();
+  };
+  const goNext = () => {
     searchState.setPage(Math.min(totalPages, searchState.page + 1));
+    scrollToTop();
+  };
 
   // aplicar facets às opções dos dropdowns
   const filteredBrands = useMemo(() => {

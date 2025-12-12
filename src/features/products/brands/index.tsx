@@ -26,7 +26,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import Highlight from "@/components/genesys-ui/hightlight";
+import Highlight from "@/components/genesys-ui/Hightlight";
 import { useBrandsList } from "./queries";
 import { TableEmpty, TableSkeleton } from "@/features/products/components";
 
@@ -81,6 +81,7 @@ export default function BrandsPage() {
     [data]
   );
   const elapsedMs = (data as any)?.elapsedMs as number | undefined;
+
 
   return (
     <div className="mx-auto space-y-6">
@@ -233,7 +234,7 @@ export default function BrandsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p + 1))}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={(data?.page ?? page) >= totalPages || isFetching}
                   className="h-8 px-2.5 gap-1"
                 >

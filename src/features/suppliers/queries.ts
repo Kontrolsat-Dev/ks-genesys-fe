@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation } from "@tanstack/react-query";
 import { suppliersClient } from "@/api/suppliers";
 import type { SupplierListResponse, SupplierDetailOut } from "@/api/suppliers";
 
@@ -33,5 +33,11 @@ export function useSupplierDetail(id?: number | null) {
     queryFn: () => suppliersClient.getSupplierDetail(id as number),
     enabled: !!id,
     staleTime: 30_000,
+  });
+}
+
+export function useTriggerRun() {
+  return useMutation({
+    mutationFn: (id: number) => import("@/api/runs").then(({ runsClient }) => runsClient.ingestSupplier(id)),
   });
 }

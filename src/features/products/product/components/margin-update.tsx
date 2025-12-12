@@ -123,18 +123,32 @@ export default function MarginUpdate({
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Margem (%)</label>
-                  <span className="text-lg font-mono font-semibold text-green-600 dark:text-green-400">
-                    {Math.round(percent)}%
-                  </span>
+                  <label className="text-sm font-medium text-muted-foreground">Ajustar margem</label>
+                  <div className="flex items-center gap-1.5 bg-muted/80 rounded-lg px-1 py-1">
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      value={percent.toFixed(1)}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (Number.isFinite(val)) {
+                          setPercent(Math.max(0, Math.min(100, val)));
+                        }
+                      }}
+                      className="w-16 h-8 px-2 text-center font-mono text-base font-semibold text-foreground bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="text-sm font-medium text-muted-foreground pr-1">%</span>
+                  </div>
                 </div>
 
                 <Slider
                   min={0}
                   max={100}
-                  step={1}
+                  step={0.5}
                   value={[percent]}
                   onValueChange={(v) => {
                     const val = Array.isArray(v) ? v[0] : 0;
@@ -142,14 +156,14 @@ export default function MarginUpdate({
                   }}
                   className="w-full"
                 />
-              </div>
 
-              <div className="flex justify-between text-xs text-muted-foreground px-1">
-                <span>0%</span>
-                <span>25%</span>
-                <span>50%</span>
-                <span>75%</span>
-                <span>100%</span>
+                <div className="flex justify-between text-[10px] text-muted-foreground/60 px-1">
+                  <span>0%</span>
+                  <span>25%</span>
+                  <span>50%</span>
+                  <span>75%</span>
+                  <span>100%</span>
+                </div>
               </div>
             </div>
 

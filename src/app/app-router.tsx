@@ -1,7 +1,7 @@
 // src/app/app-router.tsx
 // Configuração das rotas da aplicação
 
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import { RequireAuth } from "./guards/require-auth";
 import { PublicLayout } from "./layouts/public-layout";
 import PrivateLayout from "./layouts/private-layout";
@@ -22,8 +22,11 @@ import ManualRunsPage from "@/features/system/manual-runs";
 import UpdateStreamPage from "@/features/system/update-stream";
 import UpdateStreamErrorPage from "@/features/system/update-stream-errors";
 import WorkerJobsPage from "@/features/system/worker-jobs";
+import RunsPage from "@/features/runs";
 import PricesActiveOfferPage from "@/features/prices/active-offer";
 import PricesCompleteCatalogPage from "@/features/prices/catalog";
+// Fallback
+import NotFoundPage from "@/features/not-found";
 
 export const router = createBrowserRouter([
   // público
@@ -63,9 +66,13 @@ export const router = createBrowserRouter([
       { path: "/system/update-stream", element: <UpdateStreamPage /> },
       { path: "/system/dlq", element: <UpdateStreamErrorPage /> },
       { path: "/system/workers", element: <WorkerJobsPage /> },
+      { path: "/system/runs", element: <RunsPage /> },
+      // 404 dentro do layout privado
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
 
-  // fallback
-  { path: "*", element: <Navigate to="/" replace /> },
+  // fallback global (fora de autenticação)
+  { path: "*", element: <NotFoundPage /> },
 ]);
+
