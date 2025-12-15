@@ -14,9 +14,10 @@ import {
 import type {
   CatalogUpdateStatus,
   CatalogUpdateStreamItem,
-} from "@/api/system/types";
+} from "@/api/catalog-update-stream/types";
 import { useUpdateStreamList } from "./queries";
 import { fmtPrice } from "@/helpers/fmtPrices";
+import { Package, Euro, Percent } from "lucide-react";
 
 type StatusFilter = CatalogUpdateStatus | "all";
 
@@ -60,34 +61,50 @@ function productLabel(item: CatalogUpdateStreamItem): string {
 
 function formatReason(reason?: string): string {
   if (!reason) return "—";
-  if (reason === "margin_update") return "Atualização de margem";
-  // futuros reasons ficam como estão por agora
-  return reason;
+  const reasonMap: Record<string, string> = {
+    margin_update: "Atualização de margem",
+    ingest_supplier: "Atualização de feed",
+    stock_change: "Alteração de stock",
+    price_change: "Alteração de preço",
+  };
+  return reasonMap[reason] ?? reason;
 }
 
-function formatChangeSummary(item: CatalogUpdateStreamItem): string {
+// Componente visual para mostrar alterações
+function ChangeSummaryBadges({ item }: { item: CatalogUpdateStreamItem }) {
   const p = item.payload?.product;
   const ao = item.payload?.active_offer;
 
-  const parts: string[] = [];
+  const hasMargin = typeof p?.margin === "number";
+  const hasPrice = typeof ao?.unit_price_sent === "number";
+  const hasStock = typeof ao?.stock_sent === "number";
 
-  if (typeof p?.margin === "number") {
-    parts.push(`Margem: ${(p.margin * 100).toFixed(0)}%`);
+  if (!hasMargin && !hasPrice && !hasStock) {
+    return <span className="text-muted-foreground">—</span>;
   }
 
-  if (typeof ao?.unit_price_sent === "number") {
-    parts.push(`Preço: ${fmtPrice(ao.unit_price_sent)}`);
-  }
-
-  if (typeof ao?.stock_sent === "number") {
-    parts.push(`Stock: ${ao.stock_sent}`);
-  }
-
-  if (parts.length === 0) {
-    return "—";
-  }
-
-  return parts.join(" · ");
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {hasPrice && (
+        <div className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+          <Euro className="h-3 w-3" />
+          <span>{fmtPrice(ao!.unit_price_sent!)}</span>
+        </div>
+      )}
+      {hasStock && (
+        <div className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 px-2 py-1 text-[11px] font-medium text-blue-700 dark:text-blue-400">
+          <Package className="h-3 w-3" />
+          <span>{ao!.stock_sent} un.</span>
+        </div>
+      )}
+      {hasMargin && (
+        <div className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+          <Percent className="h-3 w-3" />
+          <span>{(p!.margin! * 100).toFixed(0)}%</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function UpdateStreamPage() {
@@ -237,7 +254,7 @@ export default function UpdateStreamPage() {
                     {formatReason(item.payload?.reason)}
                   </TableCell>
                   <TableCell className="text-xs">
-                    {formatChangeSummary(item)}
+                    <ChangeSummaryBadges item={item} />
                   </TableCell>
                   <TableCell>
                     <Badge variant={statusBadgeVariant(item.status)}>

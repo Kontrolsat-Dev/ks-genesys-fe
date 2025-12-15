@@ -150,7 +150,7 @@ export default function Sidebar({ mini, mobileOpen, onCloseMobile }: Props) {
           src="/logo.png"
           alt="Genesys"
           className={cn(
-            "rounded-lg transition-all",
+            "rounded-full transition-all",
             mini ? "h-8 w-8" : "h-9 w-9"
           )}
         />

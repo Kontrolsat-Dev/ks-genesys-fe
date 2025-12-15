@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -22,6 +23,8 @@ import type { OfferOut, ProductOut } from "@/api/products/types";
 import { useUpdateProductMargin } from "../queries";
 import { fmtPrice } from "@/helpers/fmtPrices";
 import { fmtMargin } from "@/helpers/fmtNumbers";
+
+const VAT_RATE = 0.23; // 23% IVA Portugal
 
 type MarginUpdateProps = {
   product: ProductOut;
@@ -38,6 +41,7 @@ export default function MarginUpdate({
 
   const [open, setOpen] = useState(false);
   const [percent, setPercent] = useState(Math.max(0, initialMargin * 100));
+  const [includeVat, setIncludeVat] = useState(false);
 
   const mutation = useUpdateProductMargin(product.id);
   const marginDecimal = useMemo(() => percent / 100, [percent]);
@@ -64,6 +68,12 @@ export default function MarginUpdate({
 
   const isSaving = mutation.isPending;
   const hasOffers = offers && offers.length > 0;
+
+  // Calcula preço com ou sem IVA
+  const calculatePrice = (basePrice: number, withVat: boolean) => {
+    const priceWithMargin = basePrice * (1 + marginDecimal);
+    return withVat ? priceWithMargin * (1 + VAT_RATE) : priceWithMargin;
+  };
 
   if (!product) {
     console.error("[v0] MarginUpdate: product prop is undefined or null");
@@ -168,7 +178,30 @@ export default function MarginUpdate({
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Impacto nas Ofertas</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Impacto nas Ofertas</h3>
+                
+                {/* Toggle IVA */}
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-medium transition-colors ${!includeVat ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    Sem IVA
+                  </span>
+                  <Switch
+                    checked={includeVat}
+                    onCheckedChange={setIncludeVat}
+                    className="data-[state=checked]:bg-primary"
+                  />
+                  <span className={`text-xs font-medium transition-colors ${includeVat ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    Com IVA
+                  </span>
+                  {includeVat && (
+                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      +23%
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <div className="rounded-lg border border-border overflow-hidden">
                 {hasOffers ? (
                   <div className="max-h-72 overflow-auto">
@@ -182,7 +215,7 @@ export default function MarginUpdate({
                             Preço Base
                           </TableHead>
                           <TableHead className="font-semibold text-right">
-                            Preço Final
+                            Preço Final {includeVat ? "(c/ IVA)" : "(s/ IVA)"}
                           </TableHead>
                         </TableRow>
                       </TableHeader>
@@ -194,7 +227,7 @@ export default function MarginUpdate({
                               : Number.NaN;
                           const priceWithMargin =
                             Number.isFinite(basePrice) && basePrice >= 0
-                              ? basePrice * (1 + marginDecimal)
+                              ? calculatePrice(basePrice, includeVat)
                               : Number.NaN;
 
                           return (
@@ -266,3 +299,4 @@ export default function MarginUpdate({
     </>
   );
 }
+

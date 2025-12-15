@@ -28,6 +28,7 @@ export const Endpoints = {
   PRODUCTS: "products",
   PRODUCT: (id: number) => `products/${id}`,
   PRODUCT_UPDATE_MARGIN: (id: number) => `products/${id}/margin`,
+  PRODUCT_IMPORT: (id: number) => `products/${id}/import`,
   PRODUCT_ACTIVE_OFFER_PRICE_CHANGES: "products/active-offer/price-changes",
   PRODUCT_CATALOG_PRICE_CHANGES: "products/price-changes/catalog",
   PRODUCTS_FACETS: "products/facets",

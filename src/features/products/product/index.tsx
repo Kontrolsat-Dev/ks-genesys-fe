@@ -110,7 +110,6 @@ export default function ProductPage() {
           stats={stats}
           bestOffer={best_offer}
           activeOffer={active_offer}
-          margin={p.margin ?? 0}
         />
       </Card>
 

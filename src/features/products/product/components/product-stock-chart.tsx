@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,106 +13,19 @@ import {
 } from "recharts";
 import { Maximize2 } from "lucide-react";
 import type { ProductEventOut } from "@/api/products/types";
-import { getColor } from "@/constants/colors";
 import { cn } from "@/lib/utils";
 import ChartExpandModal from "./chart-expand-modal";
-
-function dayKey(d: string) {
-  const dt = new Date(d);
-  const yyyy = dt.getFullYear();
-  const mm = String(dt.getMonth() + 1).padStart(2, "0");
-  const dd = String(dt.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-type SeriesMeta = {
-  key: string;
-  supplierId: number;
-  name: string;
-  color: string;
-};
+import {
+  useChartData,
+  extractStock,
+  type ChartContentProps,
+} from "./chart-utils";
 
 type Props = { events: ProductEventOut[] };
 
-function useChartData(events: ProductEventOut[], filterDays: number | null) {
-  return useMemo(() => {
-    const suppliers = new Map<number, string>();
-    for (const e of events ?? []) {
-      if (typeof e.id_supplier === "number") {
-        suppliers.set(e.id_supplier, e.supplier_name ?? `#${e.id_supplier}`);
-      }
-    }
-
-    const cutoff = filterDays 
-      ? new Date(Date.now() - filterDays * 24 * 60 * 60 * 1000)
-      : null;
-    
-    const filteredEvents = cutoff
-      ? events.filter(e => new Date(e.created_at) >= cutoff)
-      : events;
-
-    const byDay = new Map<string, Map<number, number | null>>();
-    for (const e of filteredEvents ?? []) {
-      const key = dayKey(e.created_at);
-      if (!byDay.has(key)) byDay.set(key, new Map());
-      const perSup = byDay.get(key)!;
-
-      const stockNum =
-        typeof e.stock === "number" && Number.isFinite(e.stock) ? e.stock : null;
-
-      if (typeof e.id_supplier === "number") {
-        perSup.set(e.id_supplier, stockNum);
-      }
-    }
-
-    const days = Array.from(byDay.keys()).sort();
-    const seriesMeta: SeriesMeta[] = Array.from(suppliers.entries()).map(
-      ([id, name], idx) => ({
-        key: `s_${id}`,
-        supplierId: id,
-        name,
-        color: getColor(idx),
-      })
-    );
-
-    const lastKnown = new Map<number, number | null>();
-    const data = days.map((k) => {
-      const label = new Date(k).toLocaleDateString();
-      const row: Record<string, any> = { x: label };
-      const perSup = byDay.get(k)!;
-      
-      for (const { supplierId, key } of seriesMeta) {
-        if (perSup.has(supplierId)) {
-          const val = perSup.get(supplierId) ?? null;
-          row[key] = val;
-          lastKnown.set(supplierId, val);
-        } else {
-          row[key] = lastKnown.get(supplierId) ?? null;
-        }
-      }
-      return row;
-    });
-
-    const totalPoints =
-      data.reduce(
-        (acc, row) =>
-          acc + seriesMeta.reduce((n, s) => (row[s.key] != null ? n + 1 : n), 0),
-        0
-      ) ?? 0;
-
-    return { data, seriesMeta, totalPoints };
-  }, [events, filterDays]);
-}
-
-type ChartContentProps = {
-  events: ProductEventOut[];
-  filterDays: number | null;
-  height?: string;
-};
-
 function StockChartContent({ events, filterDays, height = "h-64" }: ChartContentProps) {
   const [hidden, setHidden] = useState<Set<string>>(new Set());
-  const { data, seriesMeta, totalPoints } = useChartData(events, filterDays);
+  const { data, seriesMeta, totalPoints } = useChartData(events, filterDays, extractStock);
 
   const toggleSeries = (key: string) => {
     setHidden((prev) => {

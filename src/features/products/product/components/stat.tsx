@@ -8,11 +8,21 @@ export default function Stat({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors p-4">
-      <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-        {title}
+    <div className="group flex flex-col rounded-lg border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-sm">
+      <div className="flex items-center gap-2">
+        {icon && (
+          <div className="flex h-5 w-5 items-center justify-center text-muted-foreground/70 transition-colors group-hover:text-foreground">
+            {icon}
+          </div>
+        )}
+        <span className="text-xs font-medium text-muted-foreground">
+          {title}
+        </span>
       </div>
-      <div className="text-2xl font-bold text-foreground">{value}</div>
+      <div className="mt-2 text-xl font-semibold tabular-nums text-foreground">
+        {value}
+      </div>
     </div>
   );
 }
+

@@ -10,6 +10,8 @@ import type {
   ProductDetailParams,
   ProductDetailResponse,
   ProductMarginUpdate,
+  ProductImportIn,
+  ProductImportOut,
 } from "@/api/products/types";
 
 export const productDetailKeys = {
@@ -90,3 +92,19 @@ export function useUpdateProductMargin(
     },
   });
 }
+
+// Mutation hook para importar produto para PrestaShop
+export function useImportProduct(id: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation<ProductImportOut, Error, ProductImportIn>({
+    mutationFn: (payload) => productsClient.importToPs(id, payload),
+    onSuccess: () => {
+      // Invalidate product detail to refresh id_ecommerce
+      queryClient.invalidateQueries({
+        queryKey: productDetailKeys.root,
+      });
+    },
+  });
+}
+

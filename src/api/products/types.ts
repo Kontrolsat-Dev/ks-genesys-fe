@@ -201,3 +201,17 @@ export type ProductPriceChangeListOut = {
   page: number;
   page_size: number;
 };
+
+// --- IMPORT PRODUCT ---
+export type ProductImportIn = {
+  id_ps_category: number;
+};
+
+export type ProductImportOut = {
+  id_product: number;
+  id_ecommerce: number | null;
+  success: boolean;
+  price_sent?: string | null;
+  stock_sent?: number | null;
+};
+

@@ -12,6 +12,8 @@ import type {
   ProductPriceChangeListOut,
   ProductFacetsParams,
   ProductFacetsOut,
+  ProductImportIn,
+  ProductImportOut,
 } from "./types";
 
 export class ProductsService {
@@ -177,6 +179,14 @@ export class ProductsService {
           page_size,
         },
       }
+    );
+  }
+
+  // Import product to PrestaShop
+  importToPs(id: number, payload: ProductImportIn) {
+    return this.http.post<ProductImportOut>(
+      Endpoints.PRODUCT_IMPORT(id),
+      payload
     );
   }
 }

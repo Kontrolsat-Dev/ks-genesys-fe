@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, CheckCircle, AlertTriangle, Upload } from "lucide-react";
 import { PsCategoryTree } from "@/features/products/categories/components/ps-category-tree";
 import { useUpdateCategoryMapping } from "@/features/products/categories/queries";
+import { useImportProduct } from "@/features/products/product/queries";
 import { toast } from "sonner";
 import type { ProductOut } from "@/api/products/types";
 import type { Category } from "@/api/categories/types";
@@ -38,11 +39,12 @@ export function ImportProductModal({
     name: string;
   } | null>(null);
   const [autoImport, setAutoImport] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
 
   const updateMapping = useUpdateCategoryMapping();
+  const importProduct = useImportProduct(product.id);
 
   const categoryIsMapped = category?.id_ps_category != null;
+  const isImporting = importProduct.isPending || updateMapping.isPending;
 
   // Reset state when modal opens
   useEffect(() => {
@@ -60,13 +62,11 @@ export function ImportProductModal({
   }, [open, category, categoryIsMapped]);
 
   const handleImport = async () => {
-    if (!category) return;
-
-    setIsImporting(true);
+    if (!category || !selectedPsCategory) return;
 
     try {
       // If category wasn't mapped, save the mapping first
-      if (!categoryIsMapped && selectedPsCategory) {
+      if (!categoryIsMapped) {
         await updateMapping.mutateAsync({
           id: category.id,
           payload: {
@@ -78,17 +78,24 @@ export function ImportProductModal({
         toast.success(`Categoria "${category.name}" mapeada para PS`);
       }
 
-      // TODO: Call actual import API when backend is ready
-      // For now, just simulate success
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Call actual import API via mutation hook
+      const result = await importProduct.mutateAsync({
+        id_ps_category: selectedPsCategory.id,
+      });
 
-      toast.success(`Produto "${product.name}" pronto para importação`);
+      if (result.success) {
+        toast.success(
+          `Produto "${product.name}" importado para PrestaShop (ID: ${result.id_ecommerce})`
+        );
+      } else {
+        toast.error("Erro ao importar produto");
+      }
+
       onOpenChange(false);
       onImportSuccess();
-    } catch (error) {
-      toast.error("Erro ao processar importação");
-    } finally {
-      setIsImporting(false);
+    } catch (error: any) {
+      const message = error?.message || "Erro ao processar importação";
+      toast.error(message);
     }
   };
 

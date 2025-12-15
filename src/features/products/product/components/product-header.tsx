@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, Upload } from "lucide-react";
 import type { ProductOut } from "@/api/products/types";
 import { cx } from "@/lib/utils";
-import { toast } from "sonner";
+import { CopyBadge } from "@/components/genesys-ui/copy-badge";
 
 type Props = {
   product?: ProductOut;
@@ -13,58 +13,6 @@ type Props = {
   onImport?: () => void;
   isImported?: boolean;
 };
-
-async function copyText(text: string, label: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    try {
-      document.execCommand("copy");
-    } finally {
-      document.body.removeChild(ta);
-    }
-  }
-  toast.success(`${label} copiado para a área de transferência`);
-}
-
-function CopyBadge({
-  label,
-  value,
-  variant = "outline",
-}: {
-  label: string;
-  value: string;
-  variant?: "outline" | "secondary" | "default" | "destructive";
-}) {
-  if (!value) return null;
-  const onClick = () => copyText(value, label);
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onClick();
-    }
-  };
-  return (
-    <Badge
-      variant={variant}
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={onKeyDown}
-      title={`Copiar ${label}`}
-      className="cursor-pointer select-none hover:opacity-80 transition-opacity"
-    >
-      {label} {value}
-    </Badge>
-  );
-}
 
 export default function ProductHeader({
   product: p,

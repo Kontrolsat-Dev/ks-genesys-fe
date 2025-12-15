@@ -1,22 +1,15 @@
 import type { ProductStatsOut, OfferOut } from "@/api/products/types";
 import { fmtDateShort } from "@/helpers/fmtDate";
 import { fmtMoney } from "@/helpers/fmtPrices";
-import { CheckCircle, Package } from "lucide-react";
+import { getPriceNumber, formatSupplier, formatStock } from "@/helpers/fmtOffers";
+import { Zap, Radio, Package, TrendingUp, Clock, Users } from "lucide-react";
 import Stat from "./stat";
 
 type ProductStatsProps = {
   stats?: ProductStatsOut;
   bestOffer?: OfferOut | null;
   activeOffer?: OfferOut | null;
-  margin: number; // ex: 0.4 = 40%
 };
-
-function getPriceNumber(offer?: OfferOut | null): number | null {
-  if (!offer?.price) return null;
-  const num = Number.parseFloat(offer.price);
-  if (!Number.isFinite(num)) return null;
-  return num;
-}
 
 function formatPrice(offer?: OfferOut | null): string {
   const num = getPriceNumber(offer);
@@ -24,43 +17,10 @@ function formatPrice(offer?: OfferOut | null): string {
   return fmtMoney(String(num));
 }
 
-/**
- * Preço comunicado = preço base * (1 + margin)
- * Se margin = 0, mostramos o preço base.
- * Se num ou margin forem inválidos, devolve "—".
- */
-function formatPriceWithMargin(
-  offer: OfferOut | null | undefined,
-  margin: number
-): string {
-  const base = getPriceNumber(offer);
-  if (base == null) return "—";
-
-  // se margin = 0.4 → fator 1.4 (40% em cima)
-  const factor = Number.isFinite(margin) ? 1 + margin : 1;
-  const finalPrice = base * factor;
-
-  return fmtMoney(String(finalPrice));
-}
-
-function formatSupplier(offer?: OfferOut | null): string {
-  if (!offer) return "—";
-  return (
-    offer.supplier_name ??
-    (offer.id_supplier ? `Fornecedor #${offer.id_supplier}` : "—")
-  );
-}
-
-function formatStock(offer?: OfferOut | null): string {
-  if (typeof offer?.stock === "number") return String(offer.stock);
-  return "—";
-}
-
 export default function ProductStats({
   stats,
   bestOffer,
   activeOffer,
-  margin,
 }: ProductStatsProps) {
   const lastChangeLabel =
     stats?.last_change_at != null
@@ -71,162 +31,158 @@ export default function ProductStats({
   const hasActive = !!activeOffer;
 
   return (
-    <div className="space-y-4">
-      {/* Header + cards de oferta */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        {/* Título + última alteração */}
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            Estatísticas
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Última alteração registada: {lastChangeLabel}
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Offer Cards - Vercel Style */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Best Offer Card */}
+        <div className="group relative overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-sm">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-500/10">
+                <Zap className="h-3.5 w-3.5 text-blue-500" />
+              </div>
+              <span className="text-xs font-medium text-foreground">
+                Melhor Oferta
+              </span>
+            </div>
+            {hasBest && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-600 dark:text-blue-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                Em stock
+              </span>
+            )}
+          </div>
 
-        <div className="flex flex-col gap-3 md:flex-row">
-          {/* Melhor oferta em stock */}
+          {/* Content */}
           {hasBest ? (
-            <div
-              title="Melhor oferta disponível em stock"
-              className="group relative flex min-w-[220px] flex-col gap-2 rounded-xl border border-sky-400/70 bg-sky-50/80 px-4 py-3 shadow-sm ring-1 ring-sky-500/10 transition-all duration-200 dark:border-sky-500/60 dark:bg-sky-900/40"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-800 dark:text-sky-200">
-                  <CheckCircle className="h-4 w-4" />
-                  Melhor oferta em stock
-                </div>
-
-                <div className="inline-flex items-baseline gap-1 rounded-full bg-white/80 px-3 py-1 text-sm font-semibold text-sky-900 shadow-sm dark:bg-sky-900/80 dark:text-sky-100">
-                  <span className="text-[11px] font-medium uppercase tracking-wide text-sky-500 dark:text-sky-300">
-                    Preço
-                  </span>
-                  <span className="text-md leading-none">
+            <div className="p-4">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {formatPrice(bestOffer)}
-                  </span>
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Custo do fornecedor
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium tabular-nums text-foreground">
+                    {formatStock(bestOffer)} un.
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">disponíveis</p>
                 </div>
               </div>
 
-              {/* Body */}
-              <div className="flex items-center justify-between gap-3 text-xs text-sky-900/90 dark:text-sky-50/90">
-                <div className="flex items-center gap-2">
-                  <Package className="h-3.5 w-3.5 opacity-70" />
-                  <span className="font-medium">
-                    {formatSupplier(bestOffer)}
-                  </span>
-                </div>
-
-                <div className="inline-flex items-center gap-1 rounded-full bg-sky-900/5 px-2.5 py-1 text-[11px] font-medium text-sky-900 dark:bg-sky-800/70 dark:text-sky-100">
-                  <span className="opacity-80">Stock</span>
-                  <span className="font-semibold">
-                    {formatStock(bestOffer)}
-                  </span>
-                </div>
+              <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+                <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {formatSupplier(bestOffer)}
+                </span>
               </div>
             </div>
           ) : (
-            <div
-              className="
-                flex min-w-[220px] flex-col items-center justify-center gap-1.5
-                rounded-xl border border-dashed border-border/70
-                bg-muted/40
-                px-4 py-3
-                text-center
-              "
-            >
-              <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                <Package className="h-3.5 w-3.5 opacity-60" />
-                Sem melhor oferta
+            <div className="flex flex-col items-center justify-center p-8 text-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <Zap className="h-5 w-5 text-muted-foreground/60" />
               </div>
-              <p className="text-[11px] text-muted-foreground/80">
-                Nenhum fornecedor com stock elegível para melhor oferta.
+              <p className="mt-3 text-sm font-medium text-muted-foreground">
+                Sem melhor oferta
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground/70">
+                Nenhum fornecedor com stock disponível
               </p>
             </div>
           )}
+        </div>
 
-          {/* Oferta comunicada (activeOffer) */}
+        {/* Active Offer Card */}
+        <div className="group relative overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-sm">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10">
+                <Radio className="h-3.5 w-3.5 text-emerald-500" />
+              </div>
+              <span className="text-xs font-medium text-foreground">
+                Oferta Ativa
+              </span>
+            </div>
+            {hasActive && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                Sincronizado
+              </span>
+            )}
+          </div>
+
+          {/* Content */}
           {hasActive ? (
-            <div
-              title="Oferta comunicada para o PrestaShop"
-              className="group relative flex min-w-[220px] flex-col gap-2 rounded-xl border border-emerald-400/70 bg-emerald-50/80 px-4 py-3 shadow-sm ring-1 ring-emerald-500/10 transition-all duration-200 dark:border-emerald-500/60 dark:bg-emerald-900/40"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-800 dark:text-emerald-200">
-                  <CheckCircle className="h-4 w-4" />
-                  Oferta comunicada
+            <div className="p-4">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <p className="text-2xl font-semibold tabular-nums text-foreground">
+                    {formatPrice(activeOffer)}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Preço no PrestaShop
+                  </p>
                 </div>
-
-                <div className="inline-flex items-baseline gap-1 rounded-full bg-white/80 px-3 py-1 text-sm font-semibold text-emerald-900 shadow-sm dark:bg-emerald-900/80 dark:text-emerald-100">
-                  <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-500 dark:text-emerald-300">
-                    Preço
-                  </span>
-                  <span className="text-md leading-none">
-                    {formatPriceWithMargin(activeOffer, margin)}
-                  </span>
+                <div className="text-right">
+                  <p className="text-sm font-medium tabular-nums text-foreground">
+                    {formatStock(activeOffer)} un.
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">enviados</p>
                 </div>
               </div>
 
-              {/* Body */}
-              <div className="flex items-center justify-between gap-3 text-xs text-emerald-900/90 dark:text-emerald-50/90">
-                <div className="flex items-center gap-2">
-                  <Package className="h-3.5 w-3.5 opacity-70" />
-                  <span className="font-medium">
-                    {formatSupplier(activeOffer)}
-                  </span>
-                </div>
-
-                <div className="inline-flex items-center gap-1 rounded-full bg-emerald-900/5 px-2.5 py-1 text-[11px] font-medium text-emerald-900 dark:bg-emerald-800/70 dark:text-emerald-100">
-                  <span className="opacity-80">Stock enviado</span>
-                  <span className="font-semibold">
-                    {formatStock(activeOffer)}
-                  </span>
-                </div>
+              <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+                <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {formatSupplier(activeOffer)}
+                </span>
               </div>
             </div>
           ) : (
-            <div
-              className="
-                flex min-w-[220px] flex-col items-center justify-center gap-1.5
-                rounded-xl border border-dashed border-border/70
-                bg-muted/40
-                px-4 py-3
-                text-center
-              "
-            >
-              <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                <Package className="h-3.5 w-3.5 opacity-60" />
-                Sem oferta comunicada
+            <div className="flex flex-col items-center justify-center p-8 text-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <Radio className="h-5 w-5 text-muted-foreground/60" />
               </div>
-              <p className="text-[11px] text-muted-foreground/80">
-                Produto ainda não tem oferta ativa sincronizada com o
-                PrestaShop.
+              <p className="mt-3 text-sm font-medium text-muted-foreground">
+                Sem oferta ativa
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground/70">
+                Produto não sincronizado com PrestaShop
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Stats numéricos */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat
+          icon={<Users className="h-4 w-4" />}
           title="Fornecedores"
           value={String(stats?.suppliers_count ?? 0)}
         />
         <Stat
+          icon={<TrendingUp className="h-4 w-4" />}
           title="Ofertas c/ stock"
           value={String(stats?.offers_in_stock ?? 0)}
         />
         <Stat
+          icon={<Clock className="h-4 w-4" />}
           title="1ª vez visto"
           value={stats?.first_seen ? fmtDateShort(stats.first_seen) : "—"}
         />
         <Stat
-          title="Última vez"
-          value={stats?.last_seen ? fmtDateShort(stats.last_seen) : "—"}
+          icon={<Clock className="h-4 w-4" />}
+          title="Última alteração"
+          value={lastChangeLabel}
         />
       </div>
     </div>
   );
 }
+
