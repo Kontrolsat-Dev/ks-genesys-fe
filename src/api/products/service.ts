@@ -14,6 +14,8 @@ import type {
   ProductFacetsOut,
   ProductImportIn,
   ProductImportOut,
+  BulkImportIn,
+  BulkImportOut,
 } from "./types";
 
 export class ProductsService {
@@ -186,6 +188,14 @@ export class ProductsService {
   importToPs(id: number, payload: ProductImportIn) {
     return this.http.post<ProductImportOut>(
       Endpoints.PRODUCT_IMPORT(id),
+      payload
+    );
+  }
+
+  // Bulk import products to PrestaShop
+  bulkImport(payload: BulkImportIn) {
+    return this.http.post<BulkImportOut>(
+      Endpoints.PRODUCTS_BULK_IMPORT,
       payload
     );
   }

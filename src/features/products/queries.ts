@@ -1,11 +1,13 @@
 // src/features/products/queries.ts
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productsClient } from "@/api/products";
 import type {
   ProductListParams,
   ProductListResponse,
   ProductFacetsParams,
   ProductFacetsOut,
+  BulkImportIn,
+  BulkImportOut,
 } from "@/api/products";
 
 /**
@@ -133,3 +135,18 @@ export function useProductsFacets(params: ProductFacetsParams = {}) {
  * Pequeno helper genérico para opções de selects.
  */
 export type FilterOption = { value: string; label: string };
+
+/**
+ * Hook para importar múltiplos produtos em batch para o PrestaShop.
+ */
+export function useBulkImport() {
+  const queryClient = useQueryClient();
+
+  return useMutation<BulkImportOut, Error, BulkImportIn>({
+    mutationFn: (payload) => productsClient.bulkImport(payload),
+    onSuccess: () => {
+      // Invalidate products list to refresh import status
+      queryClient.invalidateQueries({ queryKey: productKeys.root });
+    },
+  });
+}

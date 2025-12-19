@@ -1,5 +1,5 @@
 // src/features/products/index.tsx
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { useProductsList, useProductsFacets } from "./queries";
@@ -11,9 +11,14 @@ import type { ProductExt } from "@/api/products";
 import ProductsFiltersBar from "./components/products-filters-bar";
 import ProductsTable from "./components/products-table";
 import { useSuppliersList } from "../suppliers/queries";
+import BulkImportModal from "./components/bulk-import-modal";
 
 export default function ProductsPage() {
   const searchState = useProductsSearchState();
+  
+  // Bulk import selection state
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
 
   // dropdowns base
   const { data: brands = [], isLoading: isLoadingBrands } = useAllBrands();
@@ -136,14 +141,13 @@ export default function ProductsPage() {
           onChangeCategory={searchState.setCategoryId}
           onChangeSupplier={searchState.setSupplierId}
           onResetFilters={searchState.resetAllFilters}
-          // opções já filtradas via facets
+          
           brands={filteredBrands}
           categories={filteredCategories}
           suppliers={filteredSuppliers}
           isLoadingBrands={isLoadingBrands}
           isLoadingCategories={isLoadingCategories}
           isLoadingSuppliers={isLoadingSuppliers}
-          // NOVO: feedback visual quando facets estão a refazer-se
           isUpdatingFacets={isFetchingFacets}
         />
 
@@ -159,6 +163,23 @@ export default function ProductsPage() {
           isFetching={isFetching}
           onPrevPage={goPrev}
           onNextPage={goNext}
+          // Selection props
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          onBulkImport={() => setShowBulkImportModal(true)}
+        />
+        
+        {/* Bulk Import Modal */}
+        <BulkImportModal
+          open={showBulkImportModal}
+          onOpenChange={setShowBulkImportModal}
+          selectedIds={selectedIds}
+          products={items}
+          categories={categories}
+          onSuccess={() => {
+            setSelectedIds(new Set());
+            setShowBulkImportModal(false);
+          }}
         />
       </div>
     </TooltipProvider>

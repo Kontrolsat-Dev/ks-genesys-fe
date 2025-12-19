@@ -215,3 +215,24 @@ export type ProductImportOut = {
   stock_sent?: number | null;
 };
 
+// --- BULK IMPORT ---
+export type BulkImportIn = {
+  product_ids: number[];
+  id_ps_category?: number | null;
+};
+
+export type BulkImportItemResult = {
+  id_product: number;
+  success: boolean;
+  id_ecommerce?: number | null;
+  error?: string | null;
+};
+
+export type BulkImportOut = {
+  total: number;
+  imported: number;
+  failed: number;
+  skipped: number;
+  results: BulkImportItemResult[];
+};
+
