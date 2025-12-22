@@ -137,6 +137,7 @@ export default function ProductPage() {
       {/* Import Modal */}
       <ImportProductModal
         product={p}
+        offers={offers ?? []}
         category={productCategory}
         open={importModalOpen}
         onOpenChange={setImportModalOpen}

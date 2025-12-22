@@ -8,3 +8,5 @@ export { default as ProductPriceChart } from "./product-price-chart";
 export { default as ProductStockChart } from "./product-stock-chart";
 export { default as ProductLoadingPage } from "./product-loading-page";
 export { ImportProductModal } from "./import-product-modal";
+export { MarginPreviewCard } from "./margin-preview-card";
+

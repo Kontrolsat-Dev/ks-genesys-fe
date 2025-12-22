@@ -117,11 +117,10 @@ export default function MarginUpdate({
               </div>
 
               <div
-                className={`rounded-lg border-2 p-4 transition-colors ${
-                  hasChanged
-                    ? "border-green-500/50 bg-green-50 dark:bg-green-950/20"
-                    : "border-border bg-muted/50"
-                }`}
+                className={`rounded-lg border-2 p-4 transition-colors ${hasChanged
+                  ? "border-green-500/50 bg-green-50 dark:bg-green-950/20"
+                  : "border-border bg-muted/50"
+                  }`}
               >
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
                   Nova Margem
@@ -180,9 +179,14 @@ export default function MarginUpdate({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Impacto nas Ofertas</h3>
-                
+
                 {/* Toggle IVA */}
                 <div className="flex items-center gap-3">
+                  {includeVat && (
+                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      +23%
+                    </span>
+                  )}
                   <span className={`text-xs font-medium transition-colors ${!includeVat ? 'text-foreground' : 'text-muted-foreground'}`}>
                     Sem IVA
                   </span>
@@ -194,11 +198,7 @@ export default function MarginUpdate({
                   <span className={`text-xs font-medium transition-colors ${includeVat ? 'text-foreground' : 'text-muted-foreground'}`}>
                     Com IVA
                   </span>
-                  {includeVat && (
-                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                      +23%
-                    </span>
-                  )}
+
                 </div>
               </div>
 

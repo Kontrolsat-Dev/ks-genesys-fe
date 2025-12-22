@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import type { ProductExt } from "@/api/products/types";
 import type { Category } from "@/api/categories/types";
 import { cn } from "@/lib/utils";
+import { TrendingUp, Percent } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -48,6 +49,7 @@ type CategoryGroup = {
   psCategoryId: number | null;
   psCategoryName: string | null;
   isMapped: boolean;
+  defaultMargin: number; // Average margin of products in category
 };
 
 export default function BulkImportModal({
@@ -66,6 +68,8 @@ export default function BulkImportModal({
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
   const [importState, setImportState] = useState<"idle" | "importing" | "done">("idle");
   const [importProgress, setImportProgress] = useState(0);
+  // Margin per category (key -> margin percentage)
+  const [categoryMargins, setCategoryMargins] = useState<Record<string, number>>({});
 
   const updateMapping = useUpdateCategoryMapping();
   const bulkImport = useBulkImport();
@@ -78,6 +82,7 @@ export default function BulkImportModal({
       setExpandedKeys(new Set());
       setImportState("idle");
       setImportProgress(0);
+      setCategoryMargins({});
     }
   }, [open]);
 
@@ -97,6 +102,14 @@ export default function BulkImportModal({
       const category = catId ? categories.find((c) => c.id === catId) ?? null : null;
       const hasPsMapping = category?.id_ps_category != null;
 
+      // Calculate default margin (average of products in category)
+      const margins = prods
+        .map((p) => (typeof p.margin === "number" ? p.margin * 100 : null))
+        .filter((m): m is number => m !== null);
+      const avgMargin = margins.length > 0
+        ? margins.reduce((a, b) => a + b, 0) / margins.length
+        : 20; // Default 20%
+
       return {
         key,
         category,
@@ -105,6 +118,7 @@ export default function BulkImportModal({
         psCategoryId: category?.id_ps_category ?? null,
         psCategoryName: category?.ps_category_name ?? null,
         isMapped: hasPsMapping,
+        defaultMargin: Math.round(avgMargin),
       };
     });
   }, [products, selectedIds, categories]);
@@ -141,6 +155,14 @@ export default function BulkImportModal({
     });
   };
 
+  const getMargin = (key: string, defaultMargin: number) => {
+    return categoryMargins[key] ?? defaultMargin;
+  };
+
+  const setMargin = (key: string, value: number) => {
+    setCategoryMargins((prev) => ({ ...prev, [key]: value }));
+  };
+
   const handleImport = async () => {
     setImportState("importing");
     setImportProgress(10);
@@ -170,9 +192,21 @@ export default function BulkImportModal({
 
       setImportProgress(30);
 
-      // 2. Call bulk import API
+      // 2. Build category margins map
+      const marginsToSend: Record<number, number> = {};
+      for (const group of categoryGroups) {
+        if (group.category) {
+          const margin = getMargin(group.key, group.defaultMargin);
+          marginsToSend[group.category.id] = margin;
+        }
+      }
+
+      // 3. Call bulk import API with category margins
       const productIds = Array.from(selectedIds);
-      const result = await bulkImport.mutateAsync({ product_ids: productIds });
+      const result = await bulkImport.mutateAsync({
+        product_ids: productIds,
+        category_margins: marginsToSend,
+      });
 
       setImportProgress(100);
       setImportState("done");
@@ -183,8 +217,8 @@ export default function BulkImportModal({
             result.failed > 0
               ? `${result.failed} falharam, ${result.skipped} já importados`
               : result.skipped > 0
-              ? `${result.skipped} já estavam importados`
-              : undefined,
+                ? `${result.skipped} já estavam importados`
+                : undefined,
         });
       } else if (result.skipped === result.total) {
         toast.info("Todos os produtos já estavam importados");
@@ -354,6 +388,48 @@ export default function BulkImportModal({
                                     Não mapeada
                                   </Badge>
                                 )}
+                              </div>
+
+                              {/* Margin selector inline */}
+                              <div className="flex items-center gap-3 mt-3">
+                                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">
+                                  Margem:
+                                </span>
+                                <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-2 py-1">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    step={0.1}
+                                    value={getMargin(group.key, group.defaultMargin).toFixed(1)}
+                                    onChange={(e) => {
+                                      const val = Number(e.target.value);
+                                      if (Number.isFinite(val)) {
+                                        setMargin(group.key, Math.max(0, Math.min(100, val)));
+                                      }
+                                    }}
+                                    className="w-14 text-center font-mono text-sm font-semibold bg-background border rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  />
+                                  <Percent className="h-3 w-3 text-muted-foreground" />
+                                </div>
+                                <div className="flex items-center gap-1 ml-2">
+                                  {[0, 25, 50, 75, 100].map((val) => (
+                                    <button
+                                      key={val}
+                                      type="button"
+                                      onClick={() => setMargin(group.key, val)}
+                                      className={cn(
+                                        "px-2 py-0.5 text-xs font-medium rounded transition-colors",
+                                        Math.abs(getMargin(group.key, group.defaultMargin) - val) < 0.5
+                                          ? "bg-primary text-primary-foreground"
+                                          : "bg-muted hover:bg-muted-foreground/20 text-muted-foreground"
+                                      )}
+                                    >
+                                      {val}%
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             </div>
 

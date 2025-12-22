@@ -219,6 +219,7 @@ export type ProductImportOut = {
 export type BulkImportIn = {
   product_ids: number[];
   id_ps_category?: number | null;
+  category_margins?: Record<number, number> | null;
 };
 
 export type BulkImportItemResult = {

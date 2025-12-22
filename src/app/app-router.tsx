@@ -18,7 +18,6 @@ import ProductPage from "@/features/products/product";
 import CategoriesPage from "@/features/products/categories";
 import BrandsPage from "@/features/products/brands";
 // System
-import ManualRunsPage from "@/features/system/manual-runs";
 import UpdateStreamPage from "@/features/system/update-stream";
 import UpdateStreamErrorPage from "@/features/system/update-stream-errors";
 import WorkerJobsPage from "@/features/system/worker-jobs";
@@ -62,7 +61,6 @@ export const router = createBrowserRouter([
       { path: "/prices/active-offer", element: <PricesActiveOfferPage /> },
       { path: "/prices/catalog", element: <PricesCompleteCatalogPage /> },
       // System
-      { path: "/system/manual-runs", element: <ManualRunsPage /> },
       { path: "/system/update-stream", element: <UpdateStreamPage /> },
       { path: "/system/dlq", element: <UpdateStreamErrorPage /> },
       { path: "/system/workers", element: <WorkerJobsPage /> },

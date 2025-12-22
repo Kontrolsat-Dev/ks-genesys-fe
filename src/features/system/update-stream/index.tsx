@@ -16,8 +16,8 @@ import type {
   CatalogUpdateStreamItem,
 } from "@/api/catalog-update-stream/types";
 import { useUpdateStreamList } from "./queries";
-import { fmtPrice } from "@/helpers/fmtPrices";
-import { Package, Euro, Percent } from "lucide-react";
+import ChangeSummaryBadges from "./components/change-summary-badges";
+import { fmtDate } from "@/helpers/fmtDate";
 
 type StatusFilter = CatalogUpdateStatus | "all";
 
@@ -44,13 +44,6 @@ function statusBadgeVariant(status: CatalogUpdateStatus) {
   }
 }
 
-function formatDateTime(value?: string | null): string {
-  if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleString("pt-PT");
-}
-
 function productLabel(item: CatalogUpdateStreamItem): string {
   const p = item.payload?.product;
   if (p?.name) return p.name;
@@ -63,49 +56,13 @@ function formatReason(reason?: string): string {
   if (!reason) return "—";
   const reasonMap: Record<string, string> = {
     margin_update: "Atualização de margem",
-    ingest_supplier: "Atualização de feed",
+    ingest_supplier: "Atualização de fornecedor",
     stock_change: "Alteração de stock",
     price_change: "Alteração de preço",
   };
   return reasonMap[reason] ?? reason;
 }
 
-// Componente visual para mostrar alterações
-function ChangeSummaryBadges({ item }: { item: CatalogUpdateStreamItem }) {
-  const p = item.payload?.product;
-  const ao = item.payload?.active_offer;
-
-  const hasMargin = typeof p?.margin === "number";
-  const hasPrice = typeof ao?.unit_price_sent === "number";
-  const hasStock = typeof ao?.stock_sent === "number";
-
-  if (!hasMargin && !hasPrice && !hasStock) {
-    return <span className="text-muted-foreground">—</span>;
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {hasPrice && (
-        <div className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-          <Euro className="h-3 w-3" />
-          <span>{fmtPrice(ao!.unit_price_sent!)}</span>
-        </div>
-      )}
-      {hasStock && (
-        <div className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 px-2 py-1 text-[11px] font-medium text-blue-700 dark:text-blue-400">
-          <Package className="h-3 w-3" />
-          <span>{ao!.stock_sent} un.</span>
-        </div>
-      )}
-      {hasMargin && (
-        <div className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-400">
-          <Percent className="h-3 w-3" />
-          <span>{(p!.margin! * 100).toFixed(0)}%</span>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function UpdateStreamPage() {
   const [status, setStatus] = useState<StatusFilter>("pending");
@@ -241,7 +198,9 @@ export default function UpdateStreamPage() {
                   </TableCell>
                   <TableCell className="text-xs">
                     <div className="font-medium truncate">
+                      <a href={`/products/${item.id_product}`} className="underline">
                       {productLabel(item)}
+                      </a>
                     </div>
                     <div className="text-[11px] text-muted-foreground">
                       Produto #{item.id_product}
@@ -274,10 +233,10 @@ export default function UpdateStreamPage() {
                     {item.last_error ?? "—"}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {formatDateTime(item.created_at)}
+                    {fmtDate(item.created_at)}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {formatDateTime(item.processed_at)}
+                    {fmtDate(item.processed_at)}
                   </TableCell>
                 </TableRow>
               ))}
