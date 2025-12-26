@@ -1,4 +1,6 @@
 // src/lib/http-client.ts
+import { authStore } from "./auth-store";
+
 export type TokenProvider = () => string | null;
 
 export type QueryParamValue =
@@ -11,6 +13,7 @@ export type QueryParamValue =
 
 export type RequestOptions = Omit<RequestInit, "body" | "method"> & {
   params?: Record<string, QueryParamValue>;
+  skipRefresh?: boolean; // para evitar loop infinito
 };
 
 export type HttpClientOptions = {
@@ -18,7 +21,34 @@ export type HttpClientOptions = {
   token?: TokenProvider;
   headers?: Record<string, string>;
   timeoutMs?: number;
+  onRefreshFailed?: () => void;
 };
+
+// Flag para evitar múltiplos refreshes simultâneos
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
+
+async function doRefresh(baseUrl: string): Promise<boolean> {
+  const refreshToken = authStore.getRefresh();
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${baseUrl}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!res.ok) return false;
+
+    const data = await res.json();
+    authStore.set(data.access_token);
+    authStore.setRefresh(data.refresh_token);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export class HttpClient {
   constructor(private opts: HttpClientOptions) {}
@@ -85,6 +115,30 @@ export class HttpClient {
       .get("content-type")
       ?.includes("application/json");
     const body = isJson ? await res.json().catch(() => ({})) : await res.text();
+
+    // Auto-refresh on 401
+    if (res.status === 401 && !init?.skipRefresh) {
+      // Evitar múltiplos refreshes simultâneos
+      if (!isRefreshing) {
+        isRefreshing = true;
+        refreshPromise = doRefresh(this.opts.baseUrl);
+      }
+
+      const refreshed = await refreshPromise;
+      isRefreshing = false;
+      refreshPromise = null;
+
+      if (refreshed) {
+        // Retry com novo token
+        return this.request<T>(path, { ...init, skipRefresh: true });
+      } else {
+        // Refresh falhou - limpar tokens e notificar
+        authStore.clear();
+        this.opts.onRefreshFailed?.();
+        throw new HttpError(401, body);
+      }
+    }
+
     if (!res.ok) throw new HttpError(res.status, body);
     return body as T;
   }
@@ -111,3 +165,4 @@ export class HttpError extends Error {
     super(`HTTP ${status}`);
   }
 }
+

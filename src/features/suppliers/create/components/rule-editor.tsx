@@ -27,7 +27,7 @@ type Rule = {
 function normalizeOps(
   arr?: Array<{ op: string; label?: string; arity?: number; input?: string }>
 ): MapperOp[] {
-  if (!arr || arr.length === 0) return [...FALLBACK_OPS];
+  if (!arr || !Array.isArray(arr) || arr.length === 0) return [...FALLBACK_OPS];
   return arr.map((o) => {
     const allowed: Array<MapperOp["input"]> = [
       "any",

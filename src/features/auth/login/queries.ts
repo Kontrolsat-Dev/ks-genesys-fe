@@ -15,6 +15,7 @@ export function useLoginMutation() {
     mutationFn: (payload) => authClient.login(payload),
     onSuccess: (data) => {
       authStore.set(data.access_token);
+      authStore.setRefresh(data.refresh_token);
       qc.invalidateQueries({ queryKey: authKeys.me });
     },
   });

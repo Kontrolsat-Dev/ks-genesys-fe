@@ -21,6 +21,8 @@ import BrandsPage from "@/features/products/brands";
 import UpdateStreamPage from "@/features/system/update-stream";
 import UpdateStreamErrorPage from "@/features/system/update-stream-errors";
 import WorkerJobsPage from "@/features/system/worker-jobs";
+import ConfigPage from "@/features/system/config";
+import ActivityPage from "@/features/system/activity";
 import RunsPage from "@/features/runs";
 import PricesActiveOfferPage from "@/features/prices/active-offer";
 import PricesCompleteCatalogPage from "@/features/prices/catalog";
@@ -64,7 +66,9 @@ export const router = createBrowserRouter([
       { path: "/system/update-stream", element: <UpdateStreamPage /> },
       { path: "/system/dlq", element: <UpdateStreamErrorPage /> },
       { path: "/system/workers", element: <WorkerJobsPage /> },
+      { path: "/system/config", element: <ConfigPage /> },
       { path: "/system/runs", element: <RunsPage /> },
+      { path: "/system/activity", element: <ActivityPage /> },
       // 404 dentro do layout privado
       { path: "*", element: <NotFoundPage /> },
     ],

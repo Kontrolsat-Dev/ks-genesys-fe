@@ -55,4 +55,14 @@ export const Endpoints = {
   // ----------- Workers
   WORKER_JOBS: "worker/jobs",
   WORKER_JOBS_ERROR: "worker/jobs/error",
+
+  // ----------- Config
+  CONFIG: "config",
+  CONFIG_BY_KEY: (key: string) => `config/${key}`,
+  CONFIG_SEED: "config/seed",
+
+  // ----------- Audit
+  AUDIT: "audit",
+  AUDIT_BY_ID: (id: number) => `audit/${id}`,
+  AUDIT_EVENT_TYPES: "audit/event-types",
 } as const;

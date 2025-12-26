@@ -27,6 +27,16 @@ import {
   TableSkeleton,
 } from "@/features/products/components";
 
+// Helper: verifica se produto foi criado nos últimos N dias (default: 7)
+const NEW_THRESHOLD_DAYS = 7;
+const isNew = (createdAt: string): boolean => {
+  const created = new Date(createdAt);
+  const now = new Date();
+  const diffMs = now.getTime() - created.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays <= NEW_THRESHOLD_DAYS;
+};
+
 type ProductsTableProps = {
   items: ProductExt[];
   qParam: string | null;
@@ -62,11 +72,11 @@ export default function ProductsTable({
 }: ProductsTableProps) {
   const hasPagination = onPrevPage && onNextPage;
   const hasSelection = selectedIds !== undefined && onSelectionChange !== undefined;
-  
+
   // Selection helpers
   const allSelected = hasSelection && items.length > 0 && items.every(p => selectedIds.has(p.id));
   const someSelected = hasSelection && items.some(p => selectedIds.has(p.id));
-  
+
   const toggleAll = () => {
     if (!onSelectionChange) return;
     if (allSelected) {
@@ -81,7 +91,7 @@ export default function ProductsTable({
       onSelectionChange(newSet);
     }
   };
-  
+
   const toggleOne = (id: number) => {
     if (!onSelectionChange || !selectedIds) return;
     const newSet = new Set(selectedIds);
@@ -178,6 +188,12 @@ export default function ProductsTable({
                             >
                               {p.id_ecommerce ? "importado" : "por importar"}
                             </Badge>
+                            {p.created_at && isNew(p.created_at) && (
+                              <span className="inline-flex items-baseline gap-1 text-[10px] text-blue-600 dark:text-blue-400">
+                                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                novo
+                              </span>
+                            )}
                           </div>
 
                           <div className="truncate text-xs text-muted-foreground">

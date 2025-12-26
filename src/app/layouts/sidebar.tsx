@@ -69,10 +69,12 @@ const NAV_ITEMS: NavGroup[] = [
     name: "Sistema",
     icon: Settings2,
     items: [
+      { to: "/system/config", label: "Configurações" },
       { to: "/system/update-stream", label: "Stream de Updates" },
       { to: "/system/dlq", label: "Erros de stream" },
       { to: "/system/workers", label: "Tarefas" },
       { to: "/system/runs", label: "Histórico de Ingest" },
+      { to: "/system/activity", label: "Actividade" },
     ],
   },
 ];
@@ -258,8 +260,8 @@ export default function Sidebar({ mini, mobileOpen, onCloseMobile }: Props) {
                     mini
                       ? "grid-rows-[0fr] opacity-0 pointer-events-none"
                       : isOpen
-                      ? "grid-rows-[1fr] opacity-100"
-                      : "grid-rows-[0fr] opacity-0 pointer-events-none"
+                        ? "grid-rows-[1fr] opacity-100"
+                        : "grid-rows-[0fr] opacity-0 pointer-events-none"
                   )}
                   aria-hidden={mini || !isOpen}
                 >
@@ -274,8 +276,8 @@ export default function Sidebar({ mini, mobileOpen, onCloseMobile }: Props) {
                             cn(
                               "block pl-5 pr-3 py-1.5 rounded-lg text-sm transition-colors",
                               "border-l-2 -ml-px",
-                              isActive 
-                                ? "border-foreground bg-muted text-foreground font-medium" 
+                              isActive
+                                ? "border-foreground bg-muted text-foreground font-medium"
                                 : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
                             )
                           }

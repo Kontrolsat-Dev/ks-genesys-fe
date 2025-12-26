@@ -8,7 +8,10 @@ export type LoginRequest = {
 
 export type LoginResponse = {
   access_token: string;
+  refresh_token: string;
   token_type?: string; // "bearer"
   expires_in: number;
+  refresh_expires_in: number;
   user: Record<string, unknown>;
 };
+

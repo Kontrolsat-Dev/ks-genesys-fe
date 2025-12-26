@@ -22,6 +22,7 @@ import {
   ChevronUp,
   Pencil,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { PsCategoryTree } from "@/features/products/categories/components/ps-category-tree";
 import { useUpdateCategoryMapping } from "@/features/products/categories/queries";
@@ -70,6 +71,8 @@ export default function BulkImportModal({
   const [importProgress, setImportProgress] = useState(0);
   // Margin per category (key -> margin percentage)
   const [categoryMargins, setCategoryMargins] = useState<Record<string, number>>({});
+  // Auto-import flag per category (key -> boolean)
+  const [autoImportFlags, setAutoImportFlags] = useState<Record<string, boolean>>({});
 
   const updateMapping = useUpdateCategoryMapping();
   const bulkImport = useBulkImport();
@@ -83,6 +86,7 @@ export default function BulkImportModal({
       setImportState("idle");
       setImportProgress(0);
       setCategoryMargins({});
+      setAutoImportFlags({});
     }
   }, [open]);
 
@@ -163,6 +167,12 @@ export default function BulkImportModal({
     setCategoryMargins((prev) => ({ ...prev, [key]: value }));
   };
 
+  const getAutoImport = (key: string) => autoImportFlags[key] ?? false;
+
+  const toggleAutoImport = (key: string) => {
+    setAutoImportFlags((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const handleImport = async () => {
     setImportState("importing");
     setImportProgress(10);
@@ -185,7 +195,7 @@ export default function BulkImportModal({
           payload: {
             id_ps_category: mapping.id,
             ps_category_name: mapping.name,
-            auto_import: false,
+            auto_import: getAutoImport(group.key),
           },
         });
       }
@@ -471,6 +481,32 @@ export default function BulkImportModal({
                                   selectedId={effectivePs?.id ?? null}
                                   onSelect={(cat) => handlePsCategorySelect(group.key, cat)}
                                 />
+                              </div>
+                              {/* Auto-import toggle */}
+                              <div className="mt-4 flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-sm">
+                                    Ativar auto-import para novos produtos
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  role="switch"
+                                  aria-checked={getAutoImport(group.key)}
+                                  onClick={() => toggleAutoImport(group.key)}
+                                  className={cn(
+                                    "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors",
+                                    getAutoImport(group.key) ? "bg-primary" : "bg-muted-foreground/30"
+                                  )}
+                                >
+                                  <span
+                                    className={cn(
+                                      "pointer-events-none block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+                                      getAutoImport(group.key) ? "translate-x-4" : "translate-x-0.5"
+                                    )}
+                                  />
+                                </button>
                               </div>
                             </div>
                           )}

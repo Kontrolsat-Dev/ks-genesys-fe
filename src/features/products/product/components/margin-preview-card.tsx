@@ -3,9 +3,10 @@
 
 import { useMemo } from "react";
 import { Slider } from "@/components/ui/slider";
-import { Percent } from "lucide-react";
+import { Percent, ArrowRight } from "lucide-react";
 import type { OfferOut } from "@/api/products/types";
 import { fmtPrice } from "@/helpers/fmtPrices";
+import { calculatePricePreview } from "@/helpers/priceRounding";
 
 type Props = {
     currentMargin: number;
@@ -33,10 +34,10 @@ export function MarginPreviewCard({
     const cost = bestOffer?.price ? Number(bestOffer.price) : null;
     const hasChanged = Math.abs(margin - currentMargin * 100) > 0.1;
 
-    // Calculate final price with margin
-    const finalPrice = useMemo(() => {
+    // Calculate prices with rounding using centralized helper
+    const pricePreview = useMemo(() => {
         if (cost === null || !Number.isFinite(cost)) return null;
-        return cost * (1 + margin / 100);
+        return calculatePricePreview(cost, margin);
     }, [cost, margin]);
 
     return (
@@ -54,8 +55,8 @@ export function MarginPreviewCard({
 
                 <div
                     className={`rounded-lg border-2 p-4 transition-colors ${hasChanged
-                            ? "border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/20"
-                            : "border-border bg-background"
+                        ? "border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/20"
+                        : "border-border bg-background"
                         }`}
                 >
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
@@ -101,8 +102,8 @@ export function MarginPreviewCard({
                                 type="button"
                                 onClick={() => onMarginChange(val)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${Math.abs(margin - val) < 0.5
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-muted hover:bg-muted-foreground/20 text-muted-foreground"
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted hover:bg-muted-foreground/20 text-muted-foreground"
                                     }`}
                             >
                                 {val}%
@@ -112,29 +113,51 @@ export function MarginPreviewCard({
                 </div>
             </div>
 
-            {/* Price preview */}
-            {bestOffer && cost !== null && Number.isFinite(cost) && (
-                <div className="rounded-lg border bg-background p-4">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+            {/* Price preview with rounding */}
+            {bestOffer && cost !== null && Number.isFinite(cost) && pricePreview && (
+                <div className="rounded-lg border bg-background p-4 space-y-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         Preview de Preço (Melhor Oferta)
                     </p>
-                    <div className="flex items-center justify-between">
-                        <div className="text-center">
+
+                    {/* Flow: Custo → Preço Bruto → +IVA → Arredondado */}
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="text-center flex-1">
                             <p className="text-xs text-muted-foreground mb-1">Custo</p>
-                            <p className="text-lg font-mono font-medium">{fmtPrice(cost)}</p>
+                            <p className="text-sm font-mono font-medium">{fmtPrice(cost)}</p>
                         </div>
-                        <div className="text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Multiplicador</p>
-                            <p className="text-lg font-mono font-medium">×{(1 + margin / 100).toFixed(2)}</p>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="text-center flex-1">
+                            <p className="text-xs text-muted-foreground mb-1">+Margem</p>
+                            <p className="text-sm font-mono font-medium">{fmtPrice(pricePreview.rawPrice)}</p>
                         </div>
-                        <div className="text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Preço Venda</p>
-                            <p className="text-lg font-mono font-semibold text-emerald-600">
-                                {finalPrice !== null ? fmtPrice(finalPrice) : "—"}
+                        <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="text-center flex-1">
+                            <p className="text-xs text-muted-foreground mb-1">+23% IVA</p>
+                            <p className="text-sm font-mono font-medium text-muted-foreground line-through">
+                                {fmtPrice(pricePreview.rawPriceVat)}
+                            </p>
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="text-center flex-1">
+                            <p className="text-xs text-muted-foreground mb-1">Final c/IVA</p>
+                            <p className="text-lg font-mono font-bold text-emerald-600">
+                                {fmtPrice(pricePreview.roundedVat)}
                             </p>
                         </div>
                     </div>
-                    <p className="text-xs text-muted-foreground text-center mt-3">
+
+                    {/* Preço para PrestaShop */}
+                    <div className="flex items-center justify-between pt-3 border-t">
+                        <span className="text-xs text-muted-foreground">
+                            Preço s/IVA (PrestaShop):
+                        </span>
+                        <span className="font-mono font-semibold">
+                            {fmtPrice(pricePreview.finalPrice)}
+                        </span>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground text-center">
                         Fornecedor: {bestOffer.supplier_name ?? `#${bestOffer.id_supplier}`}
                     </p>
                 </div>
@@ -142,3 +165,4 @@ export function MarginPreviewCard({
         </div>
     );
 }
+

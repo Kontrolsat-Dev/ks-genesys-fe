@@ -16,7 +16,7 @@ export function useLogout() {
   const qc = useQueryClient();
   const loc = useLocation();
   return useCallback(() => {
-    authStore.set(null);
+    authStore.clear();
     qc.clear();
     nav("/login", { replace: true, state: { from: loc } });
   }, [nav, qc, loc]);

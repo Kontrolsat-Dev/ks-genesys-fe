@@ -24,7 +24,7 @@ import { useUpdateProductMargin } from "../queries";
 import { fmtPrice } from "@/helpers/fmtPrices";
 import { fmtMargin } from "@/helpers/fmtNumbers";
 
-const VAT_RATE = 0.23; // 23% IVA Portugal
+import { calculatePriceWithRounding } from "@/helpers/priceRounding";
 
 type MarginUpdateProps = {
   product: ProductOut;
@@ -69,10 +69,9 @@ export default function MarginUpdate({
   const isSaving = mutation.isPending;
   const hasOffers = offers && offers.length > 0;
 
-  // Calcula preço com ou sem IVA
+  // Calcula preço com ou sem IVA (com arredondamento quando com IVA)
   const calculatePrice = (basePrice: number, withVat: boolean) => {
-    const priceWithMargin = basePrice * (1 + marginDecimal);
-    return withVat ? priceWithMargin * (1 + VAT_RATE) : priceWithMargin;
+    return calculatePriceWithRounding(basePrice, marginDecimal, withVat);
   };
 
   if (!product) {
