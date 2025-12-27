@@ -1,20 +1,26 @@
-// src/features/products/components/table-skeleton.tsx
+// src/components/genesys-ui/table-skeleton.tsx
+// Componente de skeleton para tabelas
+
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-type Props = {
-  rows?: number; // nº de linhas
-  cols?: number; // nº de colunas
-  rightAlignCols?: number[]; // índices (0-based) a alinhar à direita
-  showAvatarOnCol0?: boolean; // mostra o “círculo” na 1ª coluna
+type TableSkeletonProps = {
+  /** Número de linhas skeleton */
+  rows?: number;
+  /** Número de colunas */
+  cols?: number;
+  /** Índices (0-based) de colunas a alinhar à direita */
+  rightAlignCols?: number[];
+  /** Mostra círculo de avatar na primeira coluna */
+  showAvatarOnCol0?: boolean;
 };
 
-export default function TableSkeleton({
+export function TableSkeleton({
   rows = 10,
   cols = 7,
-  rightAlignCols = [4, 5],
-  showAvatarOnCol0 = true,
-}: Props) {
+  rightAlignCols = [],
+  showAvatarOnCol0 = false,
+}: TableSkeletonProps) {
   return (
     <>
       {Array.from({ length: rows }).map((_, r) => (

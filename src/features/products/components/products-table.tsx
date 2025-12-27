@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import Highlight from "@/components/genesys-ui/Hightlight";
 import { cn } from "@/lib/utils";
-import { ExternalLink, Loader2, ChevronLeft, ChevronRight, Upload } from "lucide-react";
+import { ExternalLink, ChevronLeft, ChevronRight, Upload } from "lucide-react";
+import { Spinner } from "@/components/genesys-ui";
 
 import { fmtPrice } from "@/helpers/fmtPrices";
 import type { ProductExt } from "@/api/products";
@@ -71,23 +72,27 @@ export default function ProductsTable({
   onBulkImport,
 }: ProductsTableProps) {
   const hasPagination = onPrevPage && onNextPage;
-  const hasSelection = selectedIds !== undefined && onSelectionChange !== undefined;
+  const hasSelection =
+    selectedIds !== undefined && onSelectionChange !== undefined;
 
   // Selection helpers
-  const allSelected = hasSelection && items.length > 0 && items.every(p => selectedIds.has(p.id));
-  const someSelected = hasSelection && items.some(p => selectedIds.has(p.id));
+  const allSelected =
+    hasSelection &&
+    items.length > 0 &&
+    items.every((p) => selectedIds.has(p.id));
+  const someSelected = hasSelection && items.some((p) => selectedIds.has(p.id));
 
   const toggleAll = () => {
     if (!onSelectionChange) return;
     if (allSelected) {
       // Deselect all current page items
       const newSet = new Set(selectedIds);
-      items.forEach(p => newSet.delete(p.id));
+      items.forEach((p) => newSet.delete(p.id));
       onSelectionChange(newSet);
     } else {
       // Select all current page items
       const newSet = new Set(selectedIds);
-      items.forEach(p => newSet.add(p.id));
+      items.forEach((p) => newSet.add(p.id));
       onSelectionChange(newSet);
     }
   };
@@ -147,7 +152,13 @@ export default function ProductsTable({
                     : NaN;
 
                 return (
-                  <TableRow key={p.id} className={cn("group hover:bg-muted/30", hasSelection && selectedIds?.has(p.id) && "bg-muted/50")}>
+                  <TableRow
+                    key={p.id}
+                    className={cn(
+                      "group hover:bg-muted/30",
+                      hasSelection && selectedIds?.has(p.id) && "bg-muted/50"
+                    )}
+                  >
                     {/* Checkbox */}
                     {hasSelection && (
                       <TableCell className="w-[40px]">
@@ -304,7 +315,8 @@ export default function ProductsTable({
                     className="h-8 gap-1.5"
                   >
                     <Upload className="h-3.5 w-3.5" />
-                    Importar {selectedIds.size} {selectedIds.size === 1 ? "produto" : "produtos"}
+                    Importar {selectedIds.size}{" "}
+                    {selectedIds.size === 1 ? "produto" : "produtos"}
                   </Button>
                   <Button
                     variant="ghost"
@@ -339,8 +351,7 @@ export default function ProductsTable({
                 <>
                   <span className="text-muted-foreground/50">•</span>
                   <span className="flex items-center gap-1.5">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    a atualizar
+                    <Spinner size="xs" />a atualizar
                   </span>
                 </>
               )}

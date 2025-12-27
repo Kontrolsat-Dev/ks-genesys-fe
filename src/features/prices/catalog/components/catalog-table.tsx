@@ -13,7 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Spinner } from "@/components/genesys-ui";
 import { fmtMoney, fmtPrice } from "@/helpers/fmtPrices";
 import { fmtDate } from "@/helpers/fmtDate";
 
@@ -196,8 +197,7 @@ export default function CatalogTable({
               <>
                 <span className="text-muted-foreground/50">•</span>
                 <span className="flex items-center gap-1.5">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  a atualizar
+                  <Spinner size="xs" />a atualizar
                 </span>
               </>
             )}
@@ -206,8 +206,8 @@ export default function CatalogTable({
           {/* Right: Pagination controls */}
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">
-              Página{" "}
-              <span className="font-medium text-foreground">{page}</span> de{" "}
+              Página <span className="font-medium text-foreground">{page}</span>{" "}
+              de{" "}
               <span className="font-medium text-foreground">{totalPages}</span>
             </span>
             <div className="flex items-center gap-1">

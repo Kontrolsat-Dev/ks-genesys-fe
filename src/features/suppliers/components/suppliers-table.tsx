@@ -1,5 +1,4 @@
 // src/features/suppliers/components/suppliers-table.tsx
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Highlight from "@/components/genesys-ui/Hightlight";
 import {
@@ -33,7 +32,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Pencil, Trash2, Loader2, Play } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Play } from "lucide-react";
+import { Spinner } from "@/components/genesys-ui";
 import { useState } from "react";
 import { toast } from "sonner"; // ⟵ Toaster
 
@@ -132,7 +132,9 @@ export default function SuppliersTable({
                 className="group cursor-default transition-colors hover:bg-muted/30"
               >
                 <TableCell className="font-mono text-xs text-muted-foreground">
-                  <span className="select-none text-muted-foreground/30">#</span>
+                  <span className="select-none text-muted-foreground/30">
+                    #
+                  </span>
                   {s.id.toString().padStart(3, "0")}
                 </TableCell>
 
@@ -165,13 +167,19 @@ export default function SuppliersTable({
                 <TableCell>
                   <div className="flex items-center gap-1.5 text-sm">
                     <span
-                      className={`relative flex h-2 w-2 rounded-full ${s.active ? "bg-emerald-500" : "bg-neutral-300"}`}
+                      className={`relative flex h-2 w-2 rounded-full ${
+                        s.active ? "bg-emerald-500" : "bg-neutral-300"
+                      }`}
                     >
                       {s.active && (
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                       )}
                     </span>
-                    <span className={s.active ? "text-foreground" : "text-muted-foreground"}>
+                    <span
+                      className={
+                        s.active ? "text-foreground" : "text-muted-foreground"
+                      }
+                    >
                       {s.active ? "Ativo" : "Inativo"}
                     </span>
                   </div>
@@ -189,7 +197,9 @@ export default function SuppliersTable({
                     <div
                       className={cn(
                         "h-1.5 w-1.5 rounded-full",
-                        s.ingest_enabled ? "bg-primary" : "bg-muted-foreground/40"
+                        s.ingest_enabled
+                          ? "bg-primary"
+                          : "bg-muted-foreground/40"
                       )}
                     />
                     {s.ingest_enabled ? "ON" : "OFF"}
@@ -227,7 +237,7 @@ export default function SuppliersTable({
                         aria-label="Mais ações"
                       >
                         {isDeleting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Spinner size="sm" />
                         ) : (
                           <MoreHorizontal className="h-4 w-4" />
                         )}

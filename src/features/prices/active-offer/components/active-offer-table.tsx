@@ -1,6 +1,12 @@
 // src/features/prices/active-offer/components/active-offer-table.tsx
 import { Link } from "react-router-dom";
-import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { Spinner } from "@/components/genesys-ui";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -12,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fmtDate } from "@/helpers/fmtDate";
 import { cn } from "@/lib/utils";
 
 type ActiveOfferTableProps = {
@@ -114,9 +121,7 @@ function PriceChangeRow({ item }: PriceChangeRowProps) {
       </TableCell>
 
       <TableCell className="hidden md:table-cell text-right text-xs text-muted-foreground">
-        {last_change_at
-          ? new Date(last_change_at).toLocaleString("pt-PT")
-          : "—"}
+        {last_change_at ? fmtDate(last_change_at) : "—"}
       </TableCell>
     </TableRow>
   );
@@ -214,9 +219,10 @@ export default function ActiveOfferTable({
               </TableRow>
             )}
 
-            {!isLoading && items.map((item) => (
-              <PriceChangeRow key={item.product.id} item={item} />
-            ))}
+            {!isLoading &&
+              items.map((item) => (
+                <PriceChangeRow key={item.product.id} item={item} />
+              ))}
           </TableBody>
         </Table>
       </div>
@@ -242,8 +248,7 @@ export default function ActiveOfferTable({
               <>
                 <span className="text-muted-foreground/50">•</span>
                 <span className="flex items-center gap-1.5">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  a atualizar
+                  <Spinner size="xs" />a atualizar
                 </span>
               </>
             )}
@@ -252,8 +257,8 @@ export default function ActiveOfferTable({
           {/* Right: Pagination controls */}
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">
-              Página{" "}
-              <span className="font-medium text-foreground">{page}</span> de{" "}
+              Página <span className="font-medium text-foreground">{page}</span>{" "}
+              de{" "}
               <span className="font-medium text-foreground">{totalPages}</span>
             </span>
             <div className="flex items-center gap-1">

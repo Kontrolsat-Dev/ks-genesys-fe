@@ -23,6 +23,7 @@ import type { OfferOut, ProductOut } from "@/api/products/types";
 import { useUpdateProductMargin } from "../queries";
 import { fmtPrice } from "@/helpers/fmtPrices";
 import { fmtMargin } from "@/helpers/fmtNumbers";
+import { toast } from "sonner";
 
 import { calculatePriceWithRounding } from "@/helpers/priceRounding";
 
@@ -60,7 +61,13 @@ export default function MarginUpdate({
       { margin: marginDecimal },
       {
         onSuccess: () => {
+          toast.success(`Margem atualizada para ${fmtMargin(marginDecimal)}`);
           setOpen(false);
+        },
+        onError: (error: any) => {
+          toast.error("Erro ao atualizar margem", {
+            description: error?.message || "Tenta novamente",
+          });
         },
       }
     );
@@ -116,16 +123,17 @@ export default function MarginUpdate({
               </div>
 
               <div
-                className={`rounded-lg border-2 p-4 transition-colors ${hasChanged
-                  ? "border-green-500/50 bg-green-50 dark:bg-green-950/20"
-                  : "border-border bg-muted/50"
-                  }`}
+                className={`rounded-lg border-2 p-4 transition-colors ${
+                  hasChanged
+                    ? "border-green-500/50 bg-green-50 dark:bg-green-950/20"
+                    : "border-border bg-muted/50"
+                }`}
               >
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
                   Nova Margem
                 </p>
                 <p className="text-2xl font-semibold font-mono">
-                  {(marginDecimal * 100).toFixed(0)}%
+                  {fmtMargin(marginDecimal)}
                 </p>
               </div>
             </div>
@@ -133,7 +141,9 @@ export default function MarginUpdate({
             <div className="space-y-4">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-muted-foreground">Ajustar margem</label>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Ajustar margem
+                  </label>
                   <div className="flex items-center gap-1.5 bg-muted/80 rounded-lg px-1 py-1">
                     <input
                       type="number"
@@ -149,7 +159,9 @@ export default function MarginUpdate({
                       }}
                       className="w-16 h-8 px-2 text-center font-mono text-base font-semibold text-foreground bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
-                    <span className="text-sm font-medium text-muted-foreground pr-1">%</span>
+                    <span className="text-sm font-medium text-muted-foreground pr-1">
+                      %
+                    </span>
                   </div>
                 </div>
 
@@ -186,7 +198,11 @@ export default function MarginUpdate({
                       +23%
                     </span>
                   )}
-                  <span className={`text-xs font-medium transition-colors ${!includeVat ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <span
+                    className={`text-xs font-medium transition-colors ${
+                      !includeVat ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
                     Sem IVA
                   </span>
                   <Switch
@@ -194,10 +210,13 @@ export default function MarginUpdate({
                     onCheckedChange={setIncludeVat}
                     className="data-[state=checked]:bg-primary"
                   />
-                  <span className={`text-xs font-medium transition-colors ${includeVat ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <span
+                    className={`text-xs font-medium transition-colors ${
+                      includeVat ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
                     Com IVA
                   </span>
-
                 </div>
               </div>
 
@@ -298,4 +317,3 @@ export default function MarginUpdate({
     </>
   );
 }
-

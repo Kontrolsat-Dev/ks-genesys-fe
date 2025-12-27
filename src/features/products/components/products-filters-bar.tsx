@@ -17,8 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
   XCircle,
-  Loader2,
 } from "lucide-react";
+import { Spinner } from "@/components/genesys-ui";
 
 import type { Brand } from "@/api/brands";
 import type { Category } from "@/api/categories";
@@ -199,8 +199,7 @@ export default function ProductsFiltersBar({
               <div className="flex items-center gap-2">
                 {isUpdatingFacets && (
                   <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />a atualizar
-                    filtros…
+                    <Spinner size="xs" />a atualizar filtros…
                   </span>
                 )}
 

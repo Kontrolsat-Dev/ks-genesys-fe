@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { suppliersClient } from "@/api/suppliers";
 import type {
   Supplier,
@@ -17,6 +18,14 @@ export function useCreateSupplier() {
   return useMutation({
     mutationFn: (payload: SupplierCreate) =>
       suppliersClient.createSupplier(payload),
+    onSuccess: (data) => {
+      toast.success(`Fornecedor "${data.name}" criado com sucesso`);
+    },
+    onError: (err: any) => {
+      toast.error("Erro ao criar fornecedor", {
+        description: err?.message || "Verifica os dados e tenta novamente",
+      });
+    },
   });
 }
 
@@ -34,12 +43,32 @@ export function useUpsertFeed(supplierId: number) {
   return useMutation({
     mutationFn: (payload: SupplierFeedCreate) =>
       suppliersClient.upsertSupplierFeed(supplierId, payload),
+    onSuccess: () => {
+      toast.success("Feed configurado com sucesso");
+    },
+    onError: (err: any) => {
+      toast.error("Erro ao configurar feed", {
+        description: err?.message || "Verifica a URL e tenta novamente",
+      });
+    },
   });
 }
 
 export function useTestFeed() {
   return useMutation({
     mutationFn: (payload: FeedTestRequest) => suppliersClient.testFeed(payload),
+    onSuccess: (data) => {
+      toast.success(
+        `Feed testado com sucesso! ${
+          data.rows_preview?.length || 0
+        } linhas encontradas`
+      );
+    },
+    onError: (err: any) => {
+      toast.error("Erro ao testar feed", {
+        description: err?.message || "URL inacessível ou formato inválido",
+      });
+    },
   });
 }
 
@@ -53,6 +82,14 @@ export function useUpsertMapper(feedId: number) {
   return useMutation({
     mutationFn: (payload: MapperUpsert) =>
       suppliersClient.updateSupplierMapper(feedId, payload),
+    onSuccess: () => {
+      toast.success("Mapper guardado com sucesso");
+    },
+    onError: (err: any) => {
+      toast.error("Erro ao guardar mapper", {
+        description: err?.message || "Verifica a configuração",
+      });
+    },
   });
 }
 
@@ -61,6 +98,22 @@ export function useValidateMapper(feedId: number) {
   return useMutation({
     mutationFn: (payload: MapperValidateIn) =>
       suppliersClient.validateMapper(feedId, payload),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.success("Mapper válido!");
+      } else {
+        toast.warning("Mapper tem erros/avisos", {
+          description: `${res.errors?.length || 0} erros, ${
+            res.warnings?.length || 0
+          } avisos`,
+        });
+      }
+    },
+    onError: (err: any) => {
+      toast.error("Falha na validação do mapper", {
+        description: err?.message || "Verifica a sintaxe",
+      });
+    },
   });
 }
 

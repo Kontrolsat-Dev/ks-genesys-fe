@@ -1,8 +1,13 @@
 import type { CatalogUpdateStreamItem } from "@/api/catalog-update-stream";
 import { fmtPrice } from "@/helpers/fmtPrices";
+import { fmtMargin } from "@/helpers/fmtNumbers";
 import { Euro, Package, Percent } from "lucide-react";
 
-export default function ChangeSummaryBadges({ item }: { item: CatalogUpdateStreamItem }) {
+export default function ChangeSummaryBadges({
+  item,
+}: {
+  item: CatalogUpdateStreamItem;
+}) {
   const p = item.payload?.product;
   const ao = item.payload?.active_offer;
 
@@ -31,7 +36,7 @@ export default function ChangeSummaryBadges({ item }: { item: CatalogUpdateStrea
       {hasMargin && (
         <div className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-400">
           <Percent className="h-3 w-3" />
-          <span>{(p!.margin! * 100).toFixed(0)}%</span>
+          <span>{fmtMargin(p!.margin!)}</span>
         </div>
       )}
     </div>

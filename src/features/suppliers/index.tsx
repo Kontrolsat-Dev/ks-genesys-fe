@@ -7,7 +7,7 @@ import PageHeader from "./components/page-header";
 import SuppliersToolbar from "./components/toolbar";
 import PaginationBar from "./components/pagination";
 import useDebounced from "./components/use-debounced";
-import SkeletonRows from "./components/skeleton-rows";
+import { TableSkeleton } from "@/components/genesys-ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { suppliersClient } from "@/api/suppliers";
 import { useNavigate } from "react-router-dom";
@@ -75,7 +75,7 @@ export default function SuppliersPage() {
         });
       });
     } catch (error) {
-       // handled by toast.promise
+      // handled by toast.promise
     }
   }
 
@@ -114,7 +114,7 @@ export default function SuppliersPage() {
             isLoading={isLoading}
             emptyHref="/suppliers/create"
             searchQuery={search}
-            SkeletonRows={SkeletonRows}
+            SkeletonRows={TableSkeleton}
             onEdit={(id) => nav(`/suppliers/${id}/edit`)}
             onDelete={(id) => deleteM.mutate(id)}
             deletingId={deletingId}
