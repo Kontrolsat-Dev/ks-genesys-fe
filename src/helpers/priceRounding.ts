@@ -34,46 +34,60 @@ export function roundToPrettyPrice(priceWithVat: number): number {
 }
 
 /**
- * Calcula preço com margem e arredondamento
- * 
- * @param basePrice Preço base (custo)
- * @param marginDecimal Margem em decimal (0.25 = 25%)
- * @param withVat Se deve aplicar IVA e arredondamento
- * @returns Preço calculado
- */
-export function calculatePriceWithRounding(
-  basePrice: number,
-  marginDecimal: number,
-  withVat: boolean
-): number {
-  const priceWithMargin = basePrice * (1 + marginDecimal);
-  
-  if (withVat) {
-    const priceWithVat = priceWithMargin * (1 + VAT_RATE);
-    return roundToPrettyPrice(priceWithVat);
-  }
-  
-  return priceWithMargin;
-}
-
-/**
  * Calcula preview completo do preço com arredondamento
+ * 
+ * Fórmula: (custo × (1 + margem)) + ecotax + taxas → arredondar c/ IVA
  * 
  * @param cost Custo base
  * @param marginPercent Margem em percentagem (ex: 25 para 25%)
+ * @param ecotax Ecotax a adicionar
+ * @param extraFees Taxas adicionais a adicionar
  * @returns Objeto com todos os valores calculados
  */
-export function calculatePricePreview(cost: number, marginPercent: number) {
+export function calculatePricePreview(
+  cost: number,
+  marginPercent: number,
+  ecotax: number = 0,
+  extraFees: number = 0
+) {
   const marginDecimal = marginPercent / 100;
-  const rawPrice = cost * (1 + marginDecimal);
-  const rawPriceVat = rawPrice * (1 + VAT_RATE);
+  
+  // Preço com margem (sem ecotax/taxas)
+  const priceWithMargin = cost * (1 + marginDecimal);
+  
+  // Preço bruto sem IVA = margem + eco + taxas
+  const rawPriceNoVat = priceWithMargin + ecotax + extraFees;
+  
+  // Preço bruto com IVA
+  const rawPriceVat = rawPriceNoVat * (1 + VAT_RATE);
+  
+  // Arredondar para .40/.90 com IVA
   const roundedVat = roundToPrettyPrice(rawPriceVat);
-  const finalPrice = roundedVat / (1 + VAT_RATE);
+  
+  // Preço final sem IVA (para enviar ao PrestaShop)
+  const finalPriceNoVat = roundedVat / (1 + VAT_RATE);
 
   return {
-    rawPrice,
-    rawPriceVat,
+    // Valores base
+    cost: round2(cost),
+    priceWithMargin: round2(priceWithMargin),
+    ecotax: round2(ecotax),
+    extraFees: round2(extraFees),
+    
+    // Valores brutos (antes de arredondamento)
+    rawPriceNoVat: round2(rawPriceNoVat),
+    rawPriceVat: round2(rawPriceVat),
+    
+    // Valores arredondados
     roundedVat,
-    finalPrice,
+    finalPriceNoVat: round2(finalPriceNoVat),
+    
+    // Diferença do arredondamento
+    roundingDiff: round2(roundedVat - rawPriceVat),
   };
+}
+
+/** Arredonda para 2 casas decimais */
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
 }

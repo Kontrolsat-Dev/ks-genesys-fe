@@ -47,6 +47,9 @@ export type ProductOut = {
   partnumber?: string | null;
   name?: string | null;
   margin: number | null;
+  // Taxas adicionais
+  ecotax: number;
+  extra_fees: number;
   description?: string | null;
   image_url?: string | null;
   weight_str?: string | null;
@@ -164,6 +167,8 @@ export type ProductDetailParams = {
 
 export type ProductMarginUpdate = {
   margin: number;
+  ecotax?: number | null;
+  extra_fees?: number | null;
 };
 
 // --- MOVIMENTOS DE PREÇO ---

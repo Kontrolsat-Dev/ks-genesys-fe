@@ -10,7 +10,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Loader2,
   CheckCircle,
@@ -18,6 +21,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Percent,
+  Euro,
 } from "lucide-react";
 import { PsCategoryTree } from "@/features/products/categories/components/ps-category-tree";
 import { useUpdateCategoryMapping } from "@/features/products/categories/queries";
@@ -26,6 +30,7 @@ import { toast } from "sonner";
 import type { ProductOut, OfferOut } from "@/api/products/types";
 import type { Category } from "@/api/categories/types";
 import { fmtPrice } from "@/helpers/fmtPrices";
+import { calculatePricePreview } from "@/helpers/priceRounding";
 
 type Props = {
   product: ProductOut;
@@ -44,13 +49,16 @@ export function ImportProductModal({
   onOpenChange,
   onImportSuccess,
 }: Props) {
-  // Wizard step: 1 = category, 2 = margin
+  // Wizard step: 1 = categoria, 2 = margem e taxas
   const [step, setStep] = useState(1);
   const [selectedPsCategory, setSelectedPsCategory] = useState<{
     id: number;
     name: string;
   } | null>(null);
   const [margin, setMargin] = useState(0);
+  const [ecotax, setEcotax] = useState<string>("0");
+  const [extraFees, setExtraFees] = useState<string>("0");
+  const [showWithVat, setShowWithVat] = useState(false);
 
   const updateMapping = useUpdateCategoryMapping();
   const importProduct = useImportProduct(product.id);
@@ -59,14 +67,17 @@ export function ImportProductModal({
   const categoryIsMapped = category?.id_ps_category != null;
   const isImporting = importProduct.isPending || updateMapping.isPending || updateMargin.isPending;
 
-  // Current margin in percentage
+  // Margem atual em percentagem
   const currentMarginPct = useMemo(
     () => (typeof product.margin === "number" ? product.margin * 100 : 0),
     [product.margin]
   );
   const marginHasChanged = Math.abs(margin - currentMarginPct) > 0.1;
+  const taxesHaveChanged =
+    parseFloat(ecotax || "0") !== (product.ecotax || 0) ||
+    parseFloat(extraFees || "0") !== (product.extra_fees || 0);
 
-  // Best offer for price preview
+  // Melhor oferta para prévia de preço
   const bestOffer = useMemo(() => {
     if (!offers || offers.length === 0) return null;
     return offers.reduce((best, offer) => {
@@ -77,9 +88,16 @@ export function ImportProductModal({
   }, [offers]);
 
   const cost = bestOffer?.price ? Number(bestOffer.price) : null;
-  const finalPrice = cost !== null ? cost * (1 + margin / 100) : null;
+  const extraFeesNum = parseFloat(extraFees || "0");
+  const ecotaxNum = parseFloat(ecotax || "0");
 
-  // Reset state when modal opens
+  // Usar helper de arredondamento para preview completa
+  const pricePreview = cost !== null
+    ? calculatePricePreview(cost, margin, ecotaxNum, extraFeesNum)
+    : null;
+  const priceWithMargin = pricePreview?.priceWithMargin ?? null;
+
+  // Reset state quando modal abre
   useEffect(() => {
     if (open) {
       if (categoryIsMapped && category) {
@@ -87,26 +105,33 @@ export function ImportProductModal({
           id: category.id_ps_category!,
           name: category.ps_category_name || `PS #${category.id_ps_category}`,
         });
-        setStep(1); // Go directly to margin step
+        setStep(1);
       } else {
         setSelectedPsCategory(null);
-        setStep(1); // Start at category step
+        setStep(1);
       }
       setMargin(currentMarginPct);
+      // Inicializar taxas do produto ou defaults da categoria
+      setEcotax((product.ecotax || category?.default_ecotax || 0).toString());
+      setExtraFees((product.extra_fees || category?.default_extra_fees || 0).toString());
     }
-  }, [open, category, categoryIsMapped, currentMarginPct]);
+  }, [open, category, categoryIsMapped, currentMarginPct, product.ecotax, product.extra_fees]);
 
   const handleImport = async () => {
     const psCat = selectedPsCategory;
     if (!category || !psCat) return;
 
     try {
-      // Update margin if changed
-      if (marginHasChanged) {
-        await updateMargin.mutateAsync({ margin: margin / 100 });
+      // Atualizar margem e taxas se alteradas
+      if (marginHasChanged || taxesHaveChanged) {
+        await updateMargin.mutateAsync({
+          margin: margin / 100,
+          ecotax: parseFloat(ecotax || "0"),
+          extra_fees: parseFloat(extraFees || "0"),
+        });
       }
 
-      // Map category if not mapped
+      // Mapear categoria se não mapeada
       if (!categoryIsMapped) {
         await updateMapping.mutateAsync({
           id: category.id,
@@ -118,7 +143,7 @@ export function ImportProductModal({
         });
       }
 
-      // Import product
+      // Importar produto
       const result = await importProduct.mutateAsync({
         id_ps_category: psCat.id,
       });
@@ -253,8 +278,8 @@ export function ImportProductModal({
               </div>
             </div>
 
-            {/* Quick presets */}
-            <div className="flex justify-center gap-3 mb-6">
+            {/* Atalhos rápidos */}
+            <div className="flex justify-center gap-3 mb-4">
               {[0, 25, 50, 75, 100].map((val) => (
                 <button
                   key={val}
@@ -270,8 +295,44 @@ export function ImportProductModal({
               ))}
             </div>
 
-            {/* Price preview */}
-            {cost !== null && finalPrice !== null && (
+            {/* Taxas - Layout compacto */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="space-y-1">
+                <Label htmlFor="ecotax" className="text-xs flex items-center gap-1">
+                  <Euro className="h-3 w-3 text-muted-foreground" />
+                  Ecotax
+                </Label>
+                <Input
+                  id="ecotax"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={ecotax}
+                  onChange={(e) => setEcotax(e.target.value)}
+                  placeholder="0.00"
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="extra_fees" className="text-xs flex items-center gap-1">
+                  <Euro className="h-3 w-3 text-muted-foreground" />
+                  Taxas Adicionais
+                </Label>
+                <Input
+                  id="extra_fees"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={extraFees}
+                  onChange={(e) => setExtraFees(e.target.value)}
+                  placeholder="0.00"
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Prévia de preço */}
+            {cost !== null && pricePreview !== null && priceWithMargin !== null && (
               <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div className="text-center">
@@ -280,9 +341,36 @@ export function ImportProductModal({
                   </div>
                   <ArrowRight className="h-5 w-5 text-emerald-500" />
                   <div className="text-center">
-                    <p className="text-xs text-emerald-700 uppercase font-medium">Preço Venda</p>
-                    <p className="text-2xl font-bold text-emerald-700">{fmtPrice(finalPrice)}</p>
+                    <p className="text-xs text-emerald-700 uppercase font-medium">
+                      Preço Venda {showWithVat && "(c/ IVA)"}
+                    </p>
+                    <p className="text-2xl font-bold text-emerald-700">
+                      {fmtPrice(showWithVat ? pricePreview.roundedVat : pricePreview.finalPriceNoVat)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {fmtPrice(priceWithMargin)}
+                      {extraFeesNum > 0 && ` + €${extraFeesNum.toFixed(2)} taxas`}
+                      {ecotaxNum > 0 && ` + €${ecotaxNum.toFixed(2)} eco`}
+                    </p>
+                    {pricePreview.roundingDiff !== 0 && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        Arred: {pricePreview.roundingDiff > 0 ? '+' : ''}{fmtPrice(pricePreview.roundingDiff)}
+                        {' '}→ {fmtPrice(pricePreview.roundedVat)} c/IVA
+                      </p>
+                    )}
                   </div>
+                </div>
+                {/* Toggle IVA */}
+                <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-emerald-200">
+                  <Label htmlFor="show_vat" className="text-xs text-emerald-700">
+                    Mostrar com IVA (23%)
+                  </Label>
+                  <Switch
+                    id="show_vat"
+                    checked={showWithVat}
+                    onCheckedChange={setShowWithVat}
+                    className="scale-75"
+                  />
                 </div>
               </div>
             )}

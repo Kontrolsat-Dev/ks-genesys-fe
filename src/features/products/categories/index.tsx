@@ -258,6 +258,13 @@ export default function CategoriesPage() {
                             </span>
                             <span className="text-xs text-muted-foreground">
                               ID: {cat.id_ps_category}
+                              {(cat.default_ecotax > 0 || cat.default_extra_fees > 0) && (
+                                <span className="ml-2 text-blue-600">
+                                  {cat.default_ecotax > 0 && `Eco: €${cat.default_ecotax.toFixed(2)}`}
+                                  {cat.default_ecotax > 0 && cat.default_extra_fees > 0 && " · "}
+                                  {cat.default_extra_fees > 0 && `Tax: €${cat.default_extra_fees.toFixed(2)}`}
+                                </span>
+                              )}
                             </span>
                           </div>
                         </div>

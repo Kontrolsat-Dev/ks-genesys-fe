@@ -61,6 +61,14 @@ export default function ProductInfo({
               label="ID E-commerce"
               value={p?.id_ecommerce ? String(p.id_ecommerce) : "—"}
             />
+            <InfoField
+              label="Ecotax"
+              value={p?.ecotax ? `€${p.ecotax.toFixed(2)}` : "—"}
+            />
+            <InfoField
+              label="Taxas Adicionais"
+              value={p?.extra_fees ? `€${p.extra_fees.toFixed(2)}` : "—"}
+            />
           </div>
 
           <Separator className="my-2" />
