@@ -92,15 +92,15 @@ export function CategoryMappingModal({
         <div className="space-y-4 py-4">
           {/* Categoria selecionada */}
           {selectedPsCategory && (
-            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+            <div className="flex items-center gap-2 p-3 bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-teal-600 dark:text-teal-400" />
               <div>
-                <p className="text-sm font-medium text-green-800">
+                <p className="text-sm font-medium text-teal-800 dark:text-teal-200">
                   Categoria selecionada
                 </p>
-                <p className="text-sm text-green-700">
+                <p className="text-sm text-teal-700 dark:text-teal-300">
                   {selectedPsCategory.name}{" "}
-                  <span className="text-green-500">
+                  <span className="text-teal-500 dark:text-teal-400">
                     (ID: {selectedPsCategory.id})
                   </span>
                 </p>

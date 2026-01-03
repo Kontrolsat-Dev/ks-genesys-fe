@@ -1,13 +1,13 @@
 // src/features/products/product/components/margin-preview-card.tsx
 // Componente para preview e ajuste de margem na modal de importação
 
-import { useMemo } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Percent, ArrowRight } from "lucide-react";
 import type { OfferOut } from "@/api/products/types";
 import { fmtPrice } from "@/helpers/fmtPrices";
 import { fmtMargin } from "@/helpers/fmtNumbers";
 import { calculatePricePreview } from "@/helpers/priceRounding";
+import { getBestOffer, getBestOfferCost } from "@/helpers/offers";
 
 type Props = {
   currentMargin: number;
@@ -23,23 +23,15 @@ export function MarginPreviewCard({
   offers,
 }: Props) {
   // Find best offer (lowest price)
-  const bestOffer = useMemo(() => {
-    if (!offers || offers.length === 0) return null;
-    return offers.reduce((best, offer) => {
-      const bestPrice = best.price ? Number(best.price) : Infinity;
-      const offerPrice = offer.price ? Number(offer.price) : Infinity;
-      return offerPrice < bestPrice ? offer : best;
-    }, offers[0]);
-  }, [offers]);
-
-  const cost = bestOffer?.price ? Number(bestOffer.price) : null;
+  const bestOffer = getBestOffer(offers);
+  const cost = getBestOfferCost(offers);
   const hasChanged = Math.abs(margin - currentMargin * 100) > 0.1;
 
   // Calculate prices with rounding using centralized helper
-  const pricePreview = useMemo(() => {
-    if (cost === null || !Number.isFinite(cost)) return null;
-    return calculatePricePreview(cost, margin);
-  }, [cost, margin]);
+  const pricePreview =
+    cost !== null && Number.isFinite(cost)
+      ? calculatePricePreview(cost, margin)
+      : null;
 
   return (
     <div className="rounded-lg border bg-muted/30 p-5 space-y-5">
@@ -57,7 +49,7 @@ export function MarginPreviewCard({
         <div
           className={`rounded-lg border-2 p-4 transition-colors ${
             hasChanged
-              ? "border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/20"
+              ? "border-teal-500/50 bg-teal-50 dark:bg-teal-950/20"
               : "border-border bg-background"
           }`}
         >
@@ -133,7 +125,7 @@ export function MarginPreviewCard({
             <div className="text-center flex-1">
               <p className="text-xs text-muted-foreground mb-1">+Margem</p>
               <p className="text-sm font-mono font-medium">
-                {fmtPrice(pricePreview.rawPrice)}
+                {fmtPrice(pricePreview.priceWithMargin)}
               </p>
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -146,7 +138,7 @@ export function MarginPreviewCard({
             <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
             <div className="text-center flex-1">
               <p className="text-xs text-muted-foreground mb-1">Final c/IVA</p>
-              <p className="text-lg font-mono font-bold text-emerald-600">
+              <p className="text-lg font-mono font-bold text-teal-600 dark:text-teal-400">
                 {fmtPrice(pricePreview.roundedVat)}
               </p>
             </div>
@@ -158,7 +150,7 @@ export function MarginPreviewCard({
               Preço s/IVA (PrestaShop):
             </span>
             <span className="font-mono font-semibold">
-              {fmtPrice(pricePreview.finalPrice)}
+              {fmtPrice(pricePreview.finalPriceNoVat)}
             </span>
           </div>
 

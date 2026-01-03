@@ -60,7 +60,11 @@ export default function CategoriesPage() {
   // Auto-import filter state
   const initialAutoImport = sp.get("auto_import");
   const [autoImportFilter, setAutoImportFilter] = useState<boolean | null>(
-    initialAutoImport === "true" ? true : initialAutoImport === "false" ? false : null
+    initialAutoImport === "true"
+      ? true
+      : initialAutoImport === "false"
+      ? false
+      : null
   );
 
   // Modal state
@@ -79,7 +83,8 @@ export default function CategoriesPage() {
     next.set("page_size", String(pageSize));
     if (q && q.length) next.set("q", q);
     else next.delete("q");
-    if (autoImportFilter !== null) next.set("auto_import", String(autoImportFilter));
+    if (autoImportFilter !== null)
+      next.set("auto_import", String(autoImportFilter));
     else next.delete("auto_import");
     setSp(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,8 +174,8 @@ export default function CategoriesPage() {
                 autoImportFilter === null
                   ? "all"
                   : autoImportFilter
-                    ? "active"
-                    : "inactive"
+                  ? "active"
+                  : "inactive"
               }
               onValueChange={(v) =>
                 setAutoImportFilter(
@@ -258,11 +263,18 @@ export default function CategoriesPage() {
                             </span>
                             <span className="text-xs text-muted-foreground">
                               ID: {cat.id_ps_category}
-                              {(cat.default_ecotax > 0 || cat.default_extra_fees > 0) && (
-                                <span className="ml-2 text-blue-600">
-                                  {cat.default_ecotax > 0 && `Eco: €${cat.default_ecotax.toFixed(2)}`}
-                                  {cat.default_ecotax > 0 && cat.default_extra_fees > 0 && " · "}
-                                  {cat.default_extra_fees > 0 && `Tax: €${cat.default_extra_fees.toFixed(2)}`}
+                              {(cat.default_ecotax > 0 ||
+                                cat.default_extra_fees > 0) && (
+                                <span className="ml-2 text-teal-600 dark:text-teal-400">
+                                  {cat.default_ecotax > 0 &&
+                                    `Eco: €${cat.default_ecotax.toFixed(2)}`}
+                                  {cat.default_ecotax > 0 &&
+                                    cat.default_extra_fees > 0 &&
+                                    " · "}
+                                  {cat.default_extra_fees > 0 &&
+                                    `Tax: €${cat.default_extra_fees.toFixed(
+                                      2
+                                    )}`}
                                 </span>
                               )}
                             </span>
@@ -281,8 +293,8 @@ export default function CategoriesPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       {cat.auto_import ? (
-                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
-                          <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 text-xs font-medium">
+                          <div className="h-1.5 w-1.5 rounded-full bg-teal-500" />
                           Ativo
                         </div>
                       ) : (
@@ -407,4 +419,3 @@ export default function CategoriesPage() {
     </div>
   );
 }
-

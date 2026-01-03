@@ -25,7 +25,7 @@ import { fmtPrice } from "@/helpers/fmtPrices";
 import { fmtMargin } from "@/helpers/fmtNumbers";
 import { toast } from "sonner";
 
-import { calculatePriceWithRounding } from "@/helpers/priceRounding";
+import { calculatePricePreview } from "@/helpers/priceRounding";
 
 type MarginUpdateProps = {
   product: ProductOut;
@@ -78,7 +78,8 @@ export default function MarginUpdate({
 
   // Calcula preço com ou sem IVA (com arredondamento quando com IVA)
   const calculatePrice = (basePrice: number, withVat: boolean) => {
-    return calculatePriceWithRounding(basePrice, marginDecimal, withVat);
+    const preview = calculatePricePreview(basePrice, marginDecimal * 100);
+    return withVat ? preview.roundedVat : preview.finalPriceNoVat;
   };
 
   if (!product) {

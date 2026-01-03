@@ -21,16 +21,19 @@ import {
   ArrowRight,
   ArrowLeft,
   Percent,
-  Euro,
 } from "lucide-react";
 import { PsCategoryTree } from "@/features/products/categories/components/ps-category-tree";
 import { useUpdateCategoryMapping } from "@/features/products/categories/queries";
-import { useImportProduct, useUpdateProductMargin } from "@/features/products/product/queries";
+import {
+  useImportProduct,
+  useUpdateProductMargin,
+} from "@/features/products/product/queries";
 import { toast } from "sonner";
 import type { ProductOut, OfferOut } from "@/api/products/types";
 import type { Category } from "@/api/categories/types";
 import { fmtPrice } from "@/helpers/fmtPrices";
 import { calculatePricePreview } from "@/helpers/priceRounding";
+import { getBestOfferCost } from "@/helpers/offers";
 
 type Props = {
   product: ProductOut;
@@ -58,14 +61,17 @@ export function ImportProductModal({
   const [margin, setMargin] = useState(0);
   const [ecotax, setEcotax] = useState<string>("0");
   const [extraFees, setExtraFees] = useState<string>("0");
-  const [showWithVat, setShowWithVat] = useState(false);
+  const [autoImport, setAutoImport] = useState(false);
 
   const updateMapping = useUpdateCategoryMapping();
   const importProduct = useImportProduct(product.id);
   const updateMargin = useUpdateProductMargin(product.id);
 
   const categoryIsMapped = category?.id_ps_category != null;
-  const isImporting = importProduct.isPending || updateMapping.isPending || updateMargin.isPending;
+  const isImporting =
+    importProduct.isPending ||
+    updateMapping.isPending ||
+    updateMargin.isPending;
 
   // Margem atual em percentagem
   const currentMarginPct = useMemo(
@@ -77,24 +83,16 @@ export function ImportProductModal({
     parseFloat(ecotax || "0") !== (product.ecotax || 0) ||
     parseFloat(extraFees || "0") !== (product.extra_fees || 0);
 
-  // Melhor oferta para prévia de preço
-  const bestOffer = useMemo(() => {
-    if (!offers || offers.length === 0) return null;
-    return offers.reduce((best, offer) => {
-      const bestPrice = best.price ? Number(best.price) : Infinity;
-      const offerPrice = offer.price ? Number(offer.price) : Infinity;
-      return offerPrice < bestPrice ? offer : best;
-    }, offers[0]);
-  }, [offers]);
-
-  const cost = bestOffer?.price ? Number(bestOffer.price) : null;
+  // Custo da melhor oferta para prévia de preço
+  const cost = getBestOfferCost(offers);
   const extraFeesNum = parseFloat(extraFees || "0");
   const ecotaxNum = parseFloat(ecotax || "0");
 
   // Usar helper de arredondamento para preview completa
-  const pricePreview = cost !== null
-    ? calculatePricePreview(cost, margin, ecotaxNum, extraFeesNum)
-    : null;
+  const pricePreview =
+    cost !== null
+      ? calculatePricePreview(cost, margin, ecotaxNum, extraFeesNum)
+      : null;
   const priceWithMargin = pricePreview?.priceWithMargin ?? null;
 
   // Reset state quando modal abre
@@ -111,15 +109,31 @@ export function ImportProductModal({
         setStep(1);
       }
       setMargin(currentMarginPct);
-      // Inicializar taxas do produto ou defaults da categoria
-      setEcotax((product.ecotax || category?.default_ecotax || 0).toString());
-      setExtraFees((product.extra_fees || category?.default_extra_fees || 0).toString());
+      // Inicializar taxas: se produto não importado, usar defaults da categoria
+      // Se já importado, usar valores do produto
+      const isNewProduct = !product.id_ecommerce;
+      const defaultEcotax = isNewProduct
+        ? category?.default_ecotax ?? 0
+        : product.ecotax ?? 0;
+      const defaultExtraFees = isNewProduct
+        ? category?.default_extra_fees ?? 0
+        : product.extra_fees ?? 0;
+      setEcotax(defaultEcotax.toString());
+      setExtraFees(defaultExtraFees.toString());
     }
-  }, [open, category, categoryIsMapped, currentMarginPct, product.ecotax, product.extra_fees]);
+  }, [
+    open,
+    category,
+    categoryIsMapped,
+    currentMarginPct,
+    product.ecotax,
+    product.extra_fees,
+  ]);
 
   const handleImport = async () => {
-    const psCat = selectedPsCategory;
-    if (!category || !psCat) return;
+    // Use selectedPsCategory se novo mapeamento, ou id existente se já mapeado
+    const psCatId = selectedPsCategory?.id ?? category?.id_ps_category;
+    if (!category || !psCatId) return;
 
     try {
       // Atualizar margem e taxas se alteradas
@@ -132,20 +146,20 @@ export function ImportProductModal({
       }
 
       // Mapear categoria se não mapeada
-      if (!categoryIsMapped) {
+      if (!categoryIsMapped && selectedPsCategory) {
         await updateMapping.mutateAsync({
           id: category.id,
           payload: {
-            id_ps_category: psCat.id,
-            ps_category_name: psCat.name,
-            auto_import: false,
+            id_ps_category: selectedPsCategory.id,
+            ps_category_name: selectedPsCategory.name,
+            auto_import: autoImport,
           },
         });
       }
 
       // Importar produto
       const result = await importProduct.mutateAsync({
-        id_ps_category: psCat.id,
+        id_ps_category: psCatId,
       });
 
       if (result.success) {
@@ -165,7 +179,7 @@ export function ImportProductModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <Upload className="h-5 w-5" />
@@ -190,7 +204,9 @@ export function ImportProductModal({
             </div>
 
             <div className="p-3 bg-muted/50 rounded-lg mb-4">
-              <p className="text-xs text-muted-foreground uppercase font-medium">A mapear categoria:</p>
+              <p className="text-xs text-muted-foreground uppercase font-medium">
+                A mapear categoria:
+              </p>
               <p className="text-sm font-semibold">{category?.name}</p>
             </div>
 
@@ -204,25 +220,44 @@ export function ImportProductModal({
             />
 
             {selectedPsCategory && (
-              <div className="mt-4 flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
-                <span className="text-sm font-medium text-emerald-700">
-                  {selectedPsCategory.name}
-                </span>
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center gap-2 p-3 bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                  <span className="text-sm font-medium text-teal-700 dark:text-teal-300">
+                    {selectedPsCategory.name}
+                  </span>
+                </div>
+
+                {/* Auto-import checkbox */}
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">
+                      Auto-importar produtos
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Importar automaticamente novos produtos desta categoria
+                    </p>
+                  </div>
+                  <Switch
+                    checked={autoImport}
+                    onCheckedChange={setAutoImport}
+                  />
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* ===== STEP 2: MARGEM (ou step 1 se categoria já mapeada) ===== */}
+        {/* ===== STEP 2: MARGEM E PREÇO ===== */}
         {(categoryIsMapped || step === 2) && (
-          <div className="py-4">
+          <div className="py-4 space-y-4">
+            {/* Header */}
             {!categoryIsMapped && (
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
                   2
                 </div>
-                <h3 className="font-semibold">Definir Margem</h3>
+                <h3 className="font-semibold">Definir Preço</h3>
                 <span className="text-xs text-muted-foreground ml-auto">
                   Passo 2 de 2
                 </span>
@@ -230,150 +265,178 @@ export function ImportProductModal({
             )}
 
             {categoryIsMapped && (
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg mb-4">
-                <CheckCircle className="h-4 w-4 text-emerald-600" />
-                <span className="text-sm">
+              <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-sm">
+                <CheckCircle className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <span>
                   Categoria: <strong>{category?.ps_category_name}</strong>
                 </span>
               </div>
             )}
 
-            {/* Margin display */}
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center gap-2 text-5xl font-bold">
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={0.1}
-                  value={margin.toFixed(1)}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    if (Number.isFinite(val)) {
-                      setMargin(Math.max(0, Math.min(100, val)));
-                    }
-                  }}
-                  className="w-24 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <Percent className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">Margem de lucro</p>
-            </div>
+            {/* Layout em 2 colunas */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Coluna Esquerda: Margem */}
+              <div className="space-y-3">
+                <div className="p-4 border rounded-xl bg-card">
+                  <p className="text-xs text-muted-foreground uppercase font-medium mb-2">
+                    Margem de Lucro
+                  </p>
 
-            {/* Slider */}
-            <div className="px-2 mb-6">
-              <Slider
-                min={0}
-                max={100}
-                step={0.5}
-                value={[margin]}
-                onValueChange={(v) => setMargin(v[0])}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                <span>0%</span>
-                <span>25%</span>
-                <span>50%</span>
-                <span>75%</span>
-                <span>100%</span>
-              </div>
-            </div>
-
-            {/* Atalhos rápidos */}
-            <div className="flex justify-center gap-3 mb-4">
-              {[0, 25, 50, 75, 100].map((val) => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => setMargin(val)}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${Math.abs(margin - val) < 0.5
-                    ? "bg-primary text-primary-foreground shadow-md scale-105"
-                    : "bg-muted hover:bg-muted-foreground/20"
-                    }`}
-                >
-                  {val}%
-                </button>
-              ))}
-            </div>
-
-            {/* Taxas - Layout compacto */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="space-y-1">
-                <Label htmlFor="ecotax" className="text-xs flex items-center gap-1">
-                  <Euro className="h-3 w-3 text-muted-foreground" />
-                  Ecotax
-                </Label>
-                <Input
-                  id="ecotax"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={ecotax}
-                  onChange={(e) => setEcotax(e.target.value)}
-                  placeholder="0.00"
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="extra_fees" className="text-xs flex items-center gap-1">
-                  <Euro className="h-3 w-3 text-muted-foreground" />
-                  Taxas Adicionais
-                </Label>
-                <Input
-                  id="extra_fees"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={extraFees}
-                  onChange={(e) => setExtraFees(e.target.value)}
-                  placeholder="0.00"
-                  className="h-8 text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Prévia de preço */}
-            {cost !== null && pricePreview !== null && priceWithMargin !== null && (
-              <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-center">
-                    <p className="text-xs text-muted-foreground uppercase font-medium">Custo</p>
-                    <p className="text-lg font-mono">{fmtPrice(cost)}</p>
+                  <div className="flex items-center justify-center gap-1 mb-3">
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      value={margin.toFixed(1)}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (Number.isFinite(val)) {
+                          setMargin(Math.max(0, Math.min(100, val)));
+                        }
+                      }}
+                      className="w-16 text-2xl font-bold text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <Percent className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <ArrowRight className="h-5 w-5 text-emerald-500" />
-                  <div className="text-center">
-                    <p className="text-xs text-emerald-700 uppercase font-medium">
-                      Preço Venda {showWithVat && "(c/ IVA)"}
-                    </p>
-                    <p className="text-2xl font-bold text-emerald-700">
-                      {fmtPrice(showWithVat ? pricePreview.roundedVat : pricePreview.finalPriceNoVat)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {fmtPrice(priceWithMargin)}
-                      {extraFeesNum > 0 && ` + €${extraFeesNum.toFixed(2)} taxas`}
-                      {ecotaxNum > 0 && ` + €${ecotaxNum.toFixed(2)} eco`}
-                    </p>
-                    {pricePreview.roundingDiff !== 0 && (
-                      <p className="text-xs text-blue-600 mt-1">
-                        Arred: {pricePreview.roundingDiff > 0 ? '+' : ''}{fmtPrice(pricePreview.roundingDiff)}
-                        {' '}→ {fmtPrice(pricePreview.roundedVat)} c/IVA
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {/* Toggle IVA */}
-                <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-emerald-200">
-                  <Label htmlFor="show_vat" className="text-xs text-emerald-700">
-                    Mostrar com IVA (23%)
-                  </Label>
-                  <Switch
-                    id="show_vat"
-                    checked={showWithVat}
-                    onCheckedChange={setShowWithVat}
-                    className="scale-75"
+
+                  <Slider
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={[margin]}
+                    onValueChange={(v) => setMargin(v[0])}
+                    className="mb-2"
                   />
+
+                  {/* Presets compactos */}
+                  <div className="flex gap-1 mt-3">
+                    {[0, 15, 25, 35, 50].map((val) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setMargin(val)}
+                        className={`flex-1 py-1 text-xs font-medium rounded transition-all ${
+                          Math.abs(margin - val) < 0.5
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted hover:bg-muted/80"
+                        }`}
+                      >
+                        {val}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Taxas */}
+                <div className="p-4 border rounded-xl bg-card">
+                  <p className="text-xs text-muted-foreground uppercase font-medium mb-3">
+                    Taxas (opcional)
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label
+                        htmlFor="ecotax"
+                        className="text-xs text-muted-foreground"
+                      >
+                        Ecotax €
+                      </Label>
+                      <Input
+                        id="ecotax"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={ecotax}
+                        onChange={(e) => setEcotax(e.target.value)}
+                        placeholder="0"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor="extra_fees"
+                        className="text-xs text-muted-foreground"
+                      >
+                        Outras €
+                      </Label>
+                      <Input
+                        id="extra_fees"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={extraFees}
+                        onChange={(e) => setExtraFees(e.target.value)}
+                        placeholder="0"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
+
+              {/* Coluna Direita: Resumo de Preço */}
+              <div className="p-4 border rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 dark:from-teal-950/30 dark:to-teal-900/20 border-teal-200 dark:border-teal-800">
+                <p className="text-xs text-teal-700 dark:text-teal-300 uppercase font-medium mb-3">
+                  Resumo de Preço
+                </p>
+
+                {cost !== null && pricePreview !== null ? (
+                  <div className="space-y-3">
+                    {/* Custo base */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Custo</span>
+                      <span className="font-mono">{fmtPrice(cost)}</span>
+                    </div>
+
+                    {/* Após margem */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">
+                        + Margem {margin.toFixed(0)}%
+                      </span>
+                      <span className="font-mono">
+                        {fmtPrice(priceWithMargin ?? 0)}
+                      </span>
+                    </div>
+
+                    {/* Taxas (se houver) */}
+                    {(extraFeesNum > 0 || ecotaxNum > 0) && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">+ Taxas</span>
+                        <span className="font-mono">
+                          {fmtPrice(extraFeesNum + ecotaxNum)}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="border-t border-teal-200 dark:border-teal-800 pt-3">
+                      {/* Preço sem IVA */}
+                      <div className="flex justify-between items-center text-sm mb-1">
+                        <span className="text-muted-foreground">
+                          Preço s/ IVA
+                        </span>
+                        <span className="font-mono">
+                          {fmtPrice(pricePreview.finalPriceNoVat)}
+                        </span>
+                      </div>
+
+                      {/* Preço com IVA - destaque */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-teal-700 dark:text-teal-300 font-medium">
+                          Preço c/ IVA
+                        </span>
+                        <span className="text-2xl font-bold text-teal-700 dark:text-teal-300">
+                          {fmtPrice(pricePreview.roundedVat)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-6">
+                    Sem oferta disponível
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
