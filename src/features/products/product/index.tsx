@@ -137,7 +137,7 @@ export default function ProductPage() {
       {/* Import Modal */}
       <ImportProductModal
         product={p}
-        offers={offers ?? []}
+        bestOffer={best_offer}
         category={productCategory}
         open={importModalOpen}
         onOpenChange={setImportModalOpen}
@@ -146,4 +146,3 @@ export default function ProductPage() {
     </div>
   );
 }
-

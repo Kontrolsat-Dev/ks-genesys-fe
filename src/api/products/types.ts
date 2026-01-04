@@ -26,7 +26,7 @@ export type OfferOut = {
   id_feed: number;
   sku: string;
 
-  price?: string | null;
+  price?: string | null; // Preço já com desconto aplicado
   stock?: number | null;
   id_last_seen_run?: number | null;
   updated_at?: string | null;
@@ -241,4 +241,3 @@ export type BulkImportOut = {
   skipped: number;
   results: BulkImportItemResult[];
 };
-

@@ -6,6 +6,7 @@ export type SupplierCreate = {
   contact_phone?: string | null;
   contact_email?: string | null;
   margin?: number;
+  discount?: number;
   country?: string | null;
   ingest_enabled?: boolean;
   ingest_interval_minutes?: number | null;
@@ -21,6 +22,7 @@ export type Supplier = {
   contact_phone?: string | null;
   contact_email?: string | null;
   margin: number;
+  discount: number;
   country?: string | null;
 
   ingest_enabled?: boolean;

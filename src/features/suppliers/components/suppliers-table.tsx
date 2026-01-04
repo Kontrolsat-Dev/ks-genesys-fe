@@ -46,9 +46,11 @@ type Supplier = {
   contact_phone?: string | null;
   contact_email?: string | null;
   margin: number;
+  discount?: number | null;
   country?: string | null;
   created_at: string;
   ingest_enabled?: boolean;
+  ingest_next_run_at?: string | null;
 };
 
 type Props = {
@@ -95,23 +97,25 @@ export default function SuppliersTable({
     <Table>
       <TableHeader className="sticky top-0 z-10 bg-muted/40 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
         <TableRow>
-          <TableHead className="w-[5%]">#</TableHead>
-          <TableHead className="w-[27%]">Fornecedor</TableHead>
-          <TableHead className="w-[10%]">Estado</TableHead>
-          <TableHead className="w-[10%]">Update Cat.</TableHead>
-          <TableHead className="w-[14%]">País</TableHead>
-          <TableHead className="w-[12%] text-right">Margem</TableHead>
-          <TableHead className="w-[20%]">Email</TableHead>
+          <TableHead className="w-[4%]">#</TableHead>
+          <TableHead className="w-[20%]">Fornecedor</TableHead>
+          <TableHead className="w-[8%]">Estado</TableHead>
+          <TableHead className="w-[8%]">Update</TableHead>
+          <TableHead className="w-[10%]">País</TableHead>
+          <TableHead className="w-[8%] text-right">Margem</TableHead>
+          <TableHead className="w-[8%] text-right">Desconto</TableHead>
+          <TableHead className="w-[12%]">Próx. Import</TableHead>
+          <TableHead className="w-[15%]">Email</TableHead>
           <TableHead className="w-[2%]" />
         </TableRow>
       </TableHeader>
 
       <TableBody>
         {isLoading ? (
-          <SkeletonRows rows={8} cols={8} />
+          <SkeletonRows rows={8} cols={10} />
         ) : !hasItems ? (
           <TableRow>
-            <TableCell colSpan={8} className="py-16">
+            <TableCell colSpan={10} className="py-16">
               <div className="flex flex-col items-center justify-center gap-2 text-center">
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <p className="text-sm text-muted-foreground">
@@ -212,13 +216,34 @@ export default function SuppliersTable({
                   {typeof s.margin === "number" ? fmtMargin(s.margin) : "—"}
                 </TableCell>
 
+                <TableCell className="text-right tabular-nums">
+                  {typeof s.discount === "number" && s.discount > 0
+                    ? `${(s.discount * 100).toFixed(0)}%`
+                    : "—"}
+                </TableCell>
+
+                <TableCell className="text-xs text-muted-foreground">
+                  {s.ingest_next_run_at ? (
+                    <span className="font-mono">
+                      {new Date(s.ingest_next_run_at).toLocaleString("pt-PT", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+
                 <TableCell>
                   {s.contact_email ? (
                     <a
                       className="hover:underline"
                       href={`mailto:${s.contact_email}`}
                     >
-                      <span className="block max-w-[240px] truncate md:max-w-[320px]">
+                      <span className="block max-w-[180px] truncate">
                         <Highlight text={s.contact_email} query={searchQuery} />
                       </span>
                     </a>

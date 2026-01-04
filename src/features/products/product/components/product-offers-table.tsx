@@ -27,7 +27,7 @@ export default function ProductOffersTable({ offers }: Props) {
                 Fornecedor
               </TableHead>
               <TableHead className="font-semibold text-foreground">
-                Preço
+                Custo
               </TableHead>
               <TableHead className="font-semibold text-foreground">
                 Stock

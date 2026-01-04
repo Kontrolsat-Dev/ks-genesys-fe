@@ -7,24 +7,22 @@ import type { OfferOut } from "@/api/products/types";
 import { fmtPrice } from "@/helpers/fmtPrices";
 import { fmtMargin } from "@/helpers/fmtNumbers";
 import { calculatePricePreview } from "@/helpers/priceRounding";
-import { getBestOffer, getBestOfferCost } from "@/helpers/offers";
 
 type Props = {
   currentMargin: number;
   margin: number;
   onMarginChange: (margin: number) => void;
-  offers: OfferOut[];
+  bestOffer: OfferOut | null;
 };
 
 export function MarginPreviewCard({
   currentMargin,
   margin,
   onMarginChange,
-  offers,
+  bestOffer,
 }: Props) {
-  // Find best offer (lowest price)
-  const bestOffer = getBestOffer(offers);
-  const cost = getBestOfferCost(offers);
+  // Use best offer from backend (already calculated with discount)
+  const cost = bestOffer?.price ? Number(bestOffer.price) : null;
   const hasChanged = Math.abs(margin - currentMargin * 100) > 0.1;
 
   // Calculate prices with rounding using centralized helper

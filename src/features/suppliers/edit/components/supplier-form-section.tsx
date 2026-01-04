@@ -16,6 +16,7 @@ export type SupplierForm = {
   contact_phone: string | null;
   contact_email: string | null;
   margin: number | null;
+  discount: number | null;
   country: string | null;
   ingest_enabled: boolean;
   ingest_interval_minutes: number | null;
@@ -91,15 +92,45 @@ export default function SupplierFormSection({
             step="0.01"
             min="0"
             placeholder="10"
-            value={form.watch("margin") ?? ""}
+            value={
+              form.watch("margin") != null
+                ? (form.watch("margin")! * 100).toFixed(2)
+                : ""
+            }
             onChange={(e) => {
               const v = e.target.value;
-              form.setValue("margin", v === "" ? null : Number(v), {
+              form.setValue("margin", v === "" ? null : Number(v) / 100, {
                 shouldDirty: true,
               });
             }}
             disabled={!!isBusy}
           />
+        </div>
+
+        <div className="md:col-span-3 space-y-2">
+          <Label>Desconto (%)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            max="100"
+            placeholder="0"
+            value={
+              form.watch("discount") != null
+                ? (form.watch("discount")! * 100).toFixed(2)
+                : ""
+            }
+            onChange={(e) => {
+              const v = e.target.value;
+              form.setValue("discount", v === "" ? null : Number(v) / 100, {
+                shouldDirty: true,
+              });
+            }}
+            disabled={!!isBusy}
+          />
+          <p className="text-xs text-muted-foreground">
+            Aplicado ao custo das ofertas
+          </p>
         </div>
       </section>
 

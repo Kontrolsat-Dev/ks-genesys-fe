@@ -18,6 +18,7 @@ type SupplierForm = {
   name: string;
   country: string;
   margin: number;
+  discount: number;
   active: boolean;
   logo_image?: string;
   contact_name?: string;
@@ -44,6 +45,7 @@ export default function StepSupplier({
       name: "",
       country: "PT",
       margin: 0.1,
+      discount: 0,
       active: true,
       logo_image: "",
       contact_name: "",
@@ -108,7 +110,7 @@ export default function StepSupplier({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-              <div className="md:col-span-6 space-y-1">
+              <div className="md:col-span-4 space-y-1">
                 <Label>
                   Margem{" "}
                   <span className="text-xs text-gray-600 italic">
@@ -131,7 +133,33 @@ export default function StepSupplier({
                 />
               </div>
 
-              <div className="md:col-span-6 space-y-1">
+              <div className="md:col-span-4 space-y-1">
+                <Label>
+                  Desconto{" "}
+                  <span className="text-xs text-gray-600 italic">
+                    (Ex.: 0.03 = 3%)
+                  </span>
+                </Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  max={1}
+                  placeholder="0"
+                  {...form.register("discount", {
+                    valueAsNumber: true,
+                    min: { value: 0, message: ">= 0" },
+                    max: { value: 1, message: "<= 1" },
+                    validate: (v) =>
+                      !Number.isNaN(v) || "Número inválido (ex.: 0.03)",
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Aplicado ao custo das ofertas
+                </p>
+              </div>
+
+              <div className="md:col-span-4 space-y-1">
                 <Label className="">Ativo</Label>
                 <div className="flex h-9 items-center rounded-md border px-3">
                   <Switch

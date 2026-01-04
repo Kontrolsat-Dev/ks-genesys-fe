@@ -33,11 +33,10 @@ import type { ProductOut, OfferOut } from "@/api/products/types";
 import type { Category } from "@/api/categories/types";
 import { fmtPrice } from "@/helpers/fmtPrices";
 import { calculatePricePreview } from "@/helpers/priceRounding";
-import { getBestOfferCost } from "@/helpers/offers";
 
 type Props = {
   product: ProductOut;
-  offers: OfferOut[];
+  bestOffer: OfferOut | null;
   category: Category | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -46,7 +45,7 @@ type Props = {
 
 export function ImportProductModal({
   product,
-  offers,
+  bestOffer,
   category,
   open,
   onOpenChange,
@@ -83,8 +82,8 @@ export function ImportProductModal({
     parseFloat(ecotax || "0") !== (product.ecotax || 0) ||
     parseFloat(extraFees || "0") !== (product.extra_fees || 0);
 
-  // Custo da melhor oferta para prévia de preço
-  const cost = getBestOfferCost(offers);
+  // Custo da melhor oferta (já vem com desconto aplicado do backend)
+  const cost = bestOffer?.price ? Number(bestOffer.price) : null;
   const extraFeesNum = parseFloat(extraFees || "0");
   const ecotaxNum = parseFloat(ecotax || "0");
 
@@ -103,7 +102,7 @@ export function ImportProductModal({
           id: category.id_ps_category!,
           name: category.ps_category_name || `PS #${category.id_ps_category}`,
         });
-        setStep(1);
+        setStep(2); // Ir direto para step 2 quando já mapeado
       } else {
         setSelectedPsCategory(null);
         setStep(1);
@@ -145,8 +144,11 @@ export function ImportProductModal({
         });
       }
 
-      // Mapear categoria se não mapeada
-      if (!categoryIsMapped && selectedPsCategory) {
+      // Mapear/atualizar categoria se mudou
+      const mappingChanged =
+        selectedPsCategory &&
+        selectedPsCategory.id !== category?.id_ps_category;
+      if (mappingChanged) {
         await updateMapping.mutateAsync({
           id: category.id,
           payload: {
@@ -190,8 +192,8 @@ export function ImportProductModal({
           </p>
         </DialogHeader>
 
-        {/* ===== STEP 1: CATEGORIA (se não mapeada) ===== */}
-        {!categoryIsMapped && step === 1 && (
+        {/* ===== STEP 1: CATEGORIA (sempre editável) ===== */}
+        {step === 1 && (
           <div className="py-4">
             <div className="flex items-center gap-2 mb-4">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
@@ -249,7 +251,7 @@ export function ImportProductModal({
         )}
 
         {/* ===== STEP 2: MARGEM E PREÇO ===== */}
-        {(categoryIsMapped || step === 2) && (
+        {step === 2 && (
           <div className="py-4 space-y-4">
             {/* Header */}
             {!categoryIsMapped && (
@@ -267,9 +269,17 @@ export function ImportProductModal({
             {categoryIsMapped && (
               <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-sm">
                 <CheckCircle className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                <span>
+                <span className="flex-1">
                   Categoria: <strong>{category?.ps_category_name}</strong>
                 </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep(1)}
+                  className="text-xs"
+                >
+                  Alterar
+                </Button>
               </div>
             )}
 
