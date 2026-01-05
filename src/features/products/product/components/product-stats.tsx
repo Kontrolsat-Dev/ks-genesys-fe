@@ -1,7 +1,6 @@
 import type { ProductStatsOut, OfferOut } from "@/api/products/types";
 import { fmtDateShort } from "@/helpers/fmtDate";
-import { fmtMoney } from "@/helpers/fmtPrices";
-import { getPriceNumber, formatSupplier, formatStock } from "@/helpers/fmtOffers";
+import { formatSupplier, formatStock, formatPrice } from "@/helpers/fmtOffers";
 import { Zap, Radio, Package, TrendingUp, Clock, Users } from "lucide-react";
 import Stat from "./stat";
 
@@ -10,12 +9,6 @@ type ProductStatsProps = {
   bestOffer?: OfferOut | null;
   activeOffer?: OfferOut | null;
 };
-
-function formatPrice(offer?: OfferOut | null): string {
-  const num = getPriceNumber(offer);
-  if (num == null) return "—";
-  return fmtMoney(String(num));
-}
 
 export default function ProductStats({
   stats,

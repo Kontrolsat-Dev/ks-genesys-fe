@@ -65,4 +65,11 @@ export const Endpoints = {
   AUDIT: "audit",
   AUDIT_BY_ID: (id: number) => `audit/${id}`,
   AUDIT_EVENT_TYPES: "audit/event-types",
+
+  // ----------- Dropshipping Orders
+  DROPSHIPPING_ORDERS: "orders-dropshipping/oders",
+  DROPSHIPPPING_ORDER_BY_ID: (id: number) => `orders-dropshipping/${id}`,
+  DROPSHIPPING_ORDER_SELECT_SUPPLIER: (id: number, line: number) =>
+    `orders-dropshipping/orders/${id}/lines/${line}/select-supplier`,
+  DROPSHIPPING_LIST_SUPPLIER_ORDERS: "orders-dropshipping/supplier-orders",
 } as const;
