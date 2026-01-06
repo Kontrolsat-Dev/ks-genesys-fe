@@ -47,7 +47,7 @@ const NAV_ITEMS: NavGroup[] = [
   {
     name: "Encomendas",
     icon: Package,
-    items: [{ to: "/orders", label: "Encomendas" }],
+    items: [{ to: "/orders/dropshipping", label: "Dropshipping" }],
   },
   {
     name: "Transportadoras",

@@ -26,6 +26,8 @@ import ActivityPage from "@/features/system/activity";
 import RunsPage from "@/features/runs";
 import PricesActiveOfferPage from "@/features/prices/active-offer";
 import PricesCompleteCatalogPage from "@/features/prices/catalog";
+// Orders
+import OrdersDropshippingPage from "@/features/orders-dropshipping";
 // Fallback
 import NotFoundPage from "@/features/not-found";
 
@@ -62,6 +64,8 @@ export const router = createBrowserRouter([
       // Prices
       { path: "/prices/active-offer", element: <PricesActiveOfferPage /> },
       { path: "/prices/catalog", element: <PricesCompleteCatalogPage /> },
+      // Orders
+      { path: "/orders/dropshipping", element: <OrdersDropshippingPage /> },
       // System
       { path: "/system/update-stream", element: <UpdateStreamPage /> },
       { path: "/system/dlq", element: <UpdateStreamErrorPage /> },

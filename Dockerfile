@@ -1,3 +1,4 @@
+
 # Genesys Stock Manager - Frontend
 # Multi-stage build for optimized production image
 

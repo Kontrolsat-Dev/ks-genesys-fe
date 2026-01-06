@@ -2,7 +2,7 @@
 import { HttpClient } from "@/lib/http-client";
 import { Endpoints } from "@/constants/endpoints";
 import { authStore } from "@/lib/auth-store";
-import type { PrestashopCategoriesResponse } from "./types";
+import type { PrestashopCategoriesResponse, PrestashopOrderDetail } from "./types";
 
 export class PrestashopService {
   private http: HttpClient;
@@ -19,6 +19,15 @@ export class PrestashopService {
   getCategories() {
     return this.http.get<PrestashopCategoriesResponse>(
       Endpoints.PRESTASHOP_CATEGORIES
+    );
+  }
+
+  /**
+   * Obtém detalhes da encomenda do PrestaShop via JIT
+   */
+  getOrder(id: number) {
+    return this.http.get<PrestashopOrderDetail>(
+      Endpoints.PRESTASHOP_ORDER_DETAIL(id)
     );
   }
 }

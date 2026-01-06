@@ -66,10 +66,13 @@ export const Endpoints = {
   AUDIT_BY_ID: (id: number) => `audit/${id}`,
   AUDIT_EVENT_TYPES: "audit/event-types",
 
-  // ----------- Dropshipping Orders
-  DROPSHIPPING_ORDERS: "orders-dropshipping/oders",
-  DROPSHIPPPING_ORDER_BY_ID: (id: number) => `orders-dropshipping/${id}`,
-  DROPSHIPPING_ORDER_SELECT_SUPPLIER: (id: number, line: number) =>
-    `orders-dropshipping/orders/${id}/lines/${line}/select-supplier`,
-  DROPSHIPPING_LIST_SUPPLIER_ORDERS: "orders-dropshipping/supplier-orders",
+  // ----------- Orders Dropshipping
+  DROPSHIPPING_ORDERS: "orders-dropshipping/orders",
+  DROPSHIPPING_ORDER_BY_ID: (id: number) => `orders-dropshipping/orders/${id}`,
+  DROPSHIPPING_ORDER_SELECT_SUPPLIER: (orderId: number, lineId: number) =>
+    `orders-dropshipping/orders/${orderId}/lines/${lineId}/select-supplier`,
+  DROPSHIPPING_PENDING_LINES: "orders-dropshipping/pending-lines",
+  DROPSHIPPING_SUPPLIER_ORDERS: "orders-dropshipping/supplier-orders",
+  DROPSHIPPING_IMPORT: "orders-dropshipping/import",
+  PRESTASHOP_ORDER_DETAIL: (id_ps_order: number) => `prestashop/orders/${id_ps_order}`,
 } as const;

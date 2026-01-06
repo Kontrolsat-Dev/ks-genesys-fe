@@ -1,4 +1,3 @@
-// src/api/prestashop/index.ts
 import { PrestashopService } from "./service";
 
 export const prestashopClient = new PrestashopService();
